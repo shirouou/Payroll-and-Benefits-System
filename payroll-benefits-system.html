@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oxford Suites Makati — Payroll &amp; Benefits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#b31217;
+    --navy-light:#d84c58;
+    --navy-mid:#7d0d14;
+    --brass:#ffffff;
+    --brass-light:#fff3f4;
+    --brass-dim:#efb7bc;
+    --linen:#fff7f8;
+    --paper:#FFFFFF;
+    --ink:#2a1c1d;
+    --ink-soft:#6d4d50;
+    --ink-faint:#9a7276;
+    --teal:#b31217;
+    --teal-bg:#fbe5e7;
+    --rust:#c62835;
+    --rust-bg:#fbe9eb;
+    --sage:#9f1d2d;
+    --sage-bg:#f9ecee;
+    --hairline:#f0d8db;
+    --shadow:0 1px 3px rgba(179,18,23,0.08), 0 1px 2px rgba(179,18,23,0.05);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', -apple-system, sans-serif;
+    background:var(--linen);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-family:'IBM Plex Mono', monospace; font-variant-numeric:tabular-nums;}
+  .display{font-family:'Fraunces', serif;}
+
+  /* ---- shell ---- */
+  #app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:250px; flex-shrink:0; background:var(--navy);
+    display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+  }
+  .brand{
+    padding:24px 22px 18px; border-bottom:1px solid rgba(255,255,255,0.15);
+  }
+  .brand-mark{
+    font-family:'Fraunces', serif; font-size:19px; font-weight:600; color:var(--brass-light);
+    letter-spacing:0.01em;
+  }
+  .brand-sub{
+    font-size:11px; color:#f7c9cf; margin-top:3px; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .nav{flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:2px;}
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:5px;
+    color:#f9dfe2; font-size:13.5px; font-weight:500; cursor:pointer; border-left:2px solid transparent;
+    transition:background .12s ease, color .12s ease;
+  }
+  .nav-item svg{width:16px; height:16px; flex-shrink:0; opacity:0.85;}
+  .nav-item:hover{background:rgba(255,255,255,0.05); color:#FFFFFF;}
+  .nav-item.active{
+    background:rgba(255,255,255,0.12); color:#FFFFFF; border-left:2px solid var(--brass);
+  }
+  .sidebar-foot{
+    padding:16px 22px 20px; border-top:1px solid rgba(255,255,255,0.12);
+    font-size:11.5px; color:#f9dfe2; line-height:1.5;
+  }
+
+  .main{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .topbar{
+    padding:26px 36px 20px; border-bottom:1px solid var(--hairline);
+    display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;
+    background:var(--linen);
+  }
+  .page-title{font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--navy); line-height:1.15;}
+  .page-desc{font-size:13px; color:var(--ink-soft); margin-top:5px; max-width:520px;}
+  .content{padding:28px 36px 60px; flex:1;}
+
+  /* ---- buttons ---- */
+  button{font-family:'Inter', sans-serif; cursor:pointer;}
+  .btn{
+    padding:9px 16px; border-radius:5px; font-size:13px; font-weight:600; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+  }
+  .btn-primary{background:var(--navy); color:#fff;}
+  .btn-primary:hover{background:var(--navy-mid);}
+  .btn-brass{background:var(--brass); color:var(--navy);}
+  .btn-brass:hover{background:var(--brass-light);}
+  .btn-ghost{background:var(--paper); color:var(--navy); border-color:var(--hairline);}
+  .btn-ghost:hover{border-color:var(--navy);}
+  .btn-sm{padding:5px 10px; font-size:12px; border-radius:4px;}
+  .btn-danger-text{background:none; border:none; color:var(--rust); font-size:12px; font-weight:600;}
+  .btn-sage-text{background:none; border:none; color:var(--sage); font-size:12px; font-weight:600;}
+
+  /* ---- cards & KPIs ---- */
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin-bottom:26px;}
+  .kpi-card{
+    background:var(--paper); border:1px solid var(--hairline); border-radius:7px; padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .kpi-label{font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); font-weight:600;}
+  .kpi-value{font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--navy); margin-top:8px;}
+  .kpi-sub{font-size:11.5px; color:var(--ink-soft); margin-top:5px;}
+
+  .panel{
+    background:var(--paper); border:1px solid var(--hairline); border-radius:8px; box-shadow:var(--shadow);
+    margin-bottom:22px; overflow:hidden;
+  }
+  .panel-head{
+    padding:16px 20px; border-bottom:1px solid var(--hairline); display:flex; justify-content:space-between;
+    align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .panel-title{font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; color:var(--navy);}
+  .panel-title-sm{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+  .panel-body{padding:18px 20px;}
+
+  /* ---- table (the ledger) ---- */
+  table{width:100%; border-collapse:collapse;}
+  .ledger th{
+    text-align:left; font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase; color:var(--ink-faint);
+    font-weight:700; padding:0 12px 10px; border-bottom:2px solid var(--navy);
+  }
+  .ledger th.num, .ledger td.num{text-align:right;}
+  .ledger td{padding:12px; border-bottom:1px solid var(--hairline); font-size:13.5px; vertical-align:middle;}
+  .ledger tbody tr:hover{background:#FFF9FA;}
+  .ledger td.num{font-family:'IBM Plex Mono', monospace; font-variant-numeric:tabular-nums; color:var(--navy);}
+  .ledger tfoot td{padding:12px; font-size:13px; border-top:2px solid var(--navy); font-weight:600;}
+  .row-name{font-weight:600; color:var(--ink);}
+  .row-sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px;}
+
+  /* ---- stamp badges (signature element) ---- */
+  .stamp{
+    display:inline-block; padding:3px 10px; border:1.4px solid; border-radius:3px;
+    font-size:10px; letter-spacing:0.07em; text-transform:uppercase; font-weight:700;
+    transform:rotate(-2deg); font-family:'IBM Plex Mono', monospace;
+  }
+  .stamp.approved, .stamp.active, .stamp.paid{color:var(--sage); border-color:var(--sage); background:var(--sage-bg);}
+  .stamp.pending{color:var(--brass-dim); border-color:var(--brass); background:#FFF3F4;}
+  .stamp.rejected, .stamp.inactive{color:var(--rust); border-color:var(--rust); background:var(--rust-bg);}
+
+  /* ---- forms ---- */
+  label{font-size:12px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:5px;}
+  input, select, textarea{
+    width:100%; padding:9px 11px; border:1px solid var(--hairline); border-radius:5px; font-size:13.5px;
+    font-family:'Inter', sans-serif; background:var(--paper); color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(179,18,23,0.10);}
+  .field{margin-bottom:14px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .field-row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+
+  /* ---- tabs ---- */
+  .tabs{display:flex; gap:4px; border-bottom:1px solid var(--hairline); margin-bottom:20px;}
+  .tab{padding:10px 4px; margin-right:22px; font-size:13.5px; font-weight:600; color:var(--ink-faint); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;}
+  .tab.active{color:var(--navy); border-bottom-color:var(--navy);}
+
+  /* ---- modal ---- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(22,40,61,0.45); display:flex; align-items:center;
+    justify-content:center; z-index:100; padding:24px;
+  }
+  .modal{
+    background:var(--paper); border-radius:9px; max-width:560px; width:100%; max-height:88vh; overflow:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-head{padding:20px 24px; border-bottom:1px solid var(--hairline); display:flex; justify-content:space-between; align-items:flex-start;}
+  .modal-title{font-family:'Fraunces', serif; font-size:19px; font-weight:600; color:var(--navy);}
+  .modal-body{padding:20px 24px;}
+  .modal-close{background:none; border:none; font-size:20px; color:var(--ink-faint); line-height:1;}
+
+  /* ---- payslip ---- */
+  .payslip-line{display:flex; justify-content:space-between; padding:7px 0; font-size:13px; border-bottom:1px dashed var(--hairline);}
+  .payslip-line .num{font-size:13px;}
+  .payslip-total{display:flex; justify-content:space-between; padding:12px 0 4px; font-size:16px; font-weight:700; color:var(--navy); border-top:2px solid var(--navy); margin-top:6px;}
+
+  /* ---- misc ---- */
+  .muted{color:var(--ink-soft);}
+  .empty{padding:40px 20px; text-align:center; color:var(--ink-faint); font-size:13.5px;}
+  .divider{height:1px; background:var(--hairline); margin:20px 0;}
+  .flex-between{display:flex; justify-content:space-between; align-items:center; gap:12px;}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .bar-label{width:150px; font-size:12.5px; color:var(--ink-soft); flex-shrink:0;}
+  .bar-track{flex:1; height:9px; background:var(--linen); border-radius:5px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--teal); border-radius:5px;}
+  .bar-val{width:34px; text-align:right; font-size:12px; font-family:'IBM Plex Mono', monospace; color:var(--ink-soft);}
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff;
+    padding:11px 20px; border-radius:6px; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,0.2);
+    z-index:200; opacity:0; transition:opacity .2s ease;
+  }
+  .toast.show{opacity:1;}
+  .pill{font-size:11px; padding:3px 9px; border-radius:20px; background:var(--teal-bg); color:var(--teal); font-weight:600;}
+  .footnote{font-size:11px; color:var(--ink-faint); margin-top:14px; line-height:1.6;}
+  .login-screen{min-height:100vh; display:grid; place-items:center; padding:24px; background:var(--linen);}
+  .login-card{width:min(420px,100%); background:var(--paper); border:1px solid var(--hairline); border-radius:9px; padding:30px; box-shadow:var(--shadow);}
+  .login-card .brand-mark{color:var(--navy); font-size:24px;}
+  .login-card .brand-sub{color:var(--ink-soft); margin-bottom:26px;}
+  .login-card h1{font-family:'Fraunces',serif; color:var(--navy); font-size:24px; margin-bottom:6px;}
+  .login-help{font-size:13px; color:var(--ink-soft); margin-bottom:20px;}
+  .login-error{background:var(--rust-bg); border:1px solid var(--rust); color:var(--rust); border-radius:5px; padding:10px 12px; font-size:13px; margin-bottom:14px;}
+  .login-card .field{margin-bottom:14px;}
+  .login-card .btn{width:100%; justify-content:center; margin-top:4px;}
+  .login-card .login-switch{width:100%; margin-top:12px; padding:8px; border:0; background:transparent; color:var(--navy); font-size:13px;}
+  .user-area{display:flex; align-items:center; gap:12px; font-size:12px; color:var(--ink-soft);}
+  /* Ensure buttons and user name are readable on dark sidebar */
+  .login-card .btn{background:var(--navy); color:#ffffff; border-color:var(--navy);}
+  .login-card .btn:disabled{opacity:0.7}
+  .user-area{display:flex; align-items:center; gap:12px; font-size:12px;}
+  .user-area span{color:#ffffff; font-weight:700;}
+  .logout-button{background:none; border:1px solid rgba(255,255,255,0.12); color:#ffffff; border-radius:4px; padding:5px 9px; font-size:12px; font-weight:600;}
+  .logout-button:hover{border-color:rgba(255,255,255,0.28);}
+  ::-webkit-scrollbar{width:9px; height:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--hairline); border-radius:5px;}
+
+  @media (max-width:860px){
+    .sidebar{width:72px;}
+    .brand-sub, .nav-item span, .sidebar-foot{display:none;}
+    .nav-item{justify-content:center;}
+    .field-row, .field-row3{grid-template-columns:1fr;}
+    .content, .topbar{padding-left:18px; padding-right:18px;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================= DATA LAYER ============================= */
+const DEPARTMENTS = ['Front Office','Housekeeping','Food & Beverage','Kitchen','Sales & Marketing','Administration','Engineering & Maintenance'];
+
+const SEED_EMPLOYEES = [
+  {id:'e001', name:'Maria Santos', position:'Front Desk Officer', department:'Front Office', dateHired:'2022-03-14', baseSalary:18000, status:'Active'},
+  {id:'e002', name:'Jose Reyes', position:'Concierge', department:'Front Office', dateHired:'2023-01-09', baseSalary:17000, status:'Active'},
+  {id:'e003', name:'Ana Cruz', position:'Housekeeping Supervisor', department:'Housekeeping', dateHired:'2021-06-20', baseSalary:19500, status:'Active'},
+  {id:'e004', name:'Pedro Bautista', position:'Housekeeping Attendant', department:'Housekeeping', dateHired:'2023-08-02', baseSalary:15000, status:'Active'},
+  {id:'e005', name:'Liza Fernandez', position:'F&B Supervisor', department:'Food & Beverage', dateHired:'2020-11-17', baseSalary:20000, status:'Active'},
+  {id:'e006', name:'Mark Villanueva', position:'Waiter', department:'Food & Beverage', dateHired:'2024-02-05', baseSalary:15500, status:'Active'},
+  {id:'e007', name:'Carlo Mendoza', position:'Executive Chef', department:'Kitchen', dateHired:'2019-05-12', baseSalary:35000, status:'Active'},
+  {id:'e008', name:'Rina Torres', position:'Sous Chef', department:'Kitchen', dateHired:'2021-09-30', baseSalary:24000, status:'Active'},
+  {id:'e009', name:'Julius Ramos', position:'Chef de Partie', department:'Kitchen', dateHired:'2022-12-01', baseSalary:18500, status:'Active'},
+  {id:'e010', name:'Grace Aquino', position:'Sales & Marketing Manager', department:'Sales & Marketing', dateHired:'2020-04-22', baseSalary:28000, status:'Active'},
+  {id:'e011', name:'Ben Garcia', position:'Accounting Staff', department:'Administration', dateHired:'2023-03-19', baseSalary:19000, status:'Active'},
+  {id:'e012', name:'Nora Dela Cruz', position:'HR Officer', department:'Administration', dateHired:'2022-07-08', baseSalary:21000, status:'Active'},
+  {id:'e013', name:'Tomas Lim', position:'Maintenance Technician', department:'Engineering & Maintenance', dateHired:'2021-01-25', baseSalary:16500, status:'Active'},
+  {id:'e014', name:'Ella Navarro', position:'Bartender', department:'Food & Beverage', dateHired:'2024-05-30', baseSalary:16000, status:'Active'},
+];
+
+const SEED_CLAIMS = [
+  {id:'c001', employeeId:'e007', type:'Medical', amount:3200, description:'Consultation and medication', dateFiled:'2026-06-18', status:'Approved'},
+  {id:'c002', employeeId:'e003', type:'Transportation', amount:850, description:'Off-site training travel', dateFiled:'2026-06-22', status:'Approved'},
+  {id:'c003', employeeId:'e006', type:'Meal', amount:450, description:'Overtime meal allowance', dateFiled:'2026-07-01', status:'Pending'},
+  {id:'c004', employeeId:'e010', type:'Training', amount:5000, description:'Hospitality sales certification', dateFiled:'2026-07-03', status:'Pending'},
+  {id:'c005', employeeId:'e013', type:'Other', amount:1200, description:'Safety gear reimbursement', dateFiled:'2026-06-10', status:'Rejected'},
+];
+
+const SEED_HMO_PLANS = [
+  {id:'p001', name:'Bronze Care', coverage:100000, premium:850, description:'Basic inpatient and outpatient coverage'},
+  {id:'p002', name:'Silver Shield', coverage:200000, premium:1450, description:'Expanded coverage with annual physical exam'},
+  {id:'p003', name:'Gold Wellness', coverage:350000, premium:2200, description:'Full coverage plus dental and 2 dependents'},
+];
+
+const SEED_ENROLLMENTS = [
+  {id:'n001', employeeId:'e001', planId:'p002', dependents:1, dateEnrolled:'2022-04-01', status:'Active'},
+  {id:'n002', employeeId:'e003', planId:'p003', dependents:2, dateEnrolled:'2021-07-15', status:'Active'},
+  {id:'n003', employeeId:'e007', planId:'p003', dependents:3, dateEnrolled:'2019-06-01', status:'Active'},
+  {id:'n004', employeeId:'e010', planId:'p002', dependents:0, dateEnrolled:'2020-05-01', status:'Active'},
+  {id:'n005', employeeId:'e004', planId:'p001', dependents:0, dateEnrolled:'2023-09-01', status:'Active'},
+  {id:'n006', employeeId:'e012', planId:'p002', dependents:1, dateEnrolled:'2022-08-01', status:'Active'},
+];
+
+const SEED_BONUS_PLANS = [
+  {id:'b001', title:'13th Month Pay', scope:'All Employees', type:'Statutory', period:'December 2026', notes:'Computed as total basic salary earned for the year divided by 12'},
+  {id:'b002', title:'Kitchen Team Performance Bonus', scope:'Kitchen', type:'Discretionary', period:'Q3 2026', notes:'Awarded for consistent food-cost efficiency and guest ratings'},
+  {id:'b003', title:'Front Office Guest Satisfaction Incentive', scope:'Front Office', type:'Discretionary', period:'Q3 2026', notes:'Tied to guest survey scores above 4.5/5'},
+];
+
+let STATE = {
+  employees: [],
+  claims: [],
+  hmoPlans: [],
+  enrollments: [],
+  bonusPlans: [],
+  payrollRuns: [],
+  activeView: 'dashboard',
+};
+
+/* ---- storage helpers ---- */
+const AUTH_TOKEN_KEY = 'payroll_auth_token';
+const AUTH_USER_KEY = 'payroll_auth_user';
+const API_BASE_URL = window.PAYROLL_API_URL || 'http://localhost:5000/api';
+let AUTH_USER = null;
+
+function getAuthToken(){ return localStorage.getItem(AUTH_TOKEN_KEY); }
+function clearAuth(){ localStorage.removeItem(AUTH_TOKEN_KEY); localStorage.removeItem(AUTH_USER_KEY); AUTH_USER = null; }
+
+async function login(email, password){
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email, password}),
+  });
+  const payload = await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(payload.message || 'Unable to sign in');
+  localStorage.setItem(AUTH_TOKEN_KEY, payload.token);
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(payload.data));
+  AUTH_USER = payload.data;
+}
+
+async function register(name, email, password){
+  let response;
+  try{
+    response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name, email, password}),
+    });
+  }catch(e){
+    throw new Error('Cannot reach the backend. Confirm it is running at http://localhost:5000.');
+  }
+  const payload = await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(payload.message || 'Unable to create account');
+  return payload;
+}
+
+async function restoreAuth(){
+  const token = getAuthToken();
+  if(!token) return false;
+  try{
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {headers:{Authorization:`Bearer ${token}`}});
+    if(!response.ok) throw new Error('Session expired');
+    const payload = await response.json();
+    AUTH_USER = payload.data;
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(AUTH_USER));
+    return true;
+  }catch(e){
+    clearAuth();
+    return false;
+  }
+}
+
+function renderLogin(error='', mode='login'){
+  const isRegistering = mode === 'register';
+  document.getElementById('app').innerHTML = `
+    <main class="login-screen">
+      <form class="login-card" id="login-form">
+        <div class="brand-mark">Oxford Suites Makati</div>
+        <div class="brand-sub">Payroll &amp; Benefits</div>
+        <h1>${isRegistering ? 'Create account' : 'Sign in'}</h1>
+        <p class="login-help">${isRegistering ? 'New accounts are created with viewer access.' : 'Use your administrator or HR account to continue.'}</p>
+        ${error ? `<div class="login-error" role="alert">${error}</div>` : ''}
+        ${isRegistering ? '<div class="field"><label for="login-name">Name</label><input id="login-name" type="text" required autocomplete="name"></div>' : ''}
+        <div class="field"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"></div>
+        <div class="field"><label for="login-password">Password</label><input id="login-password" type="password" minlength="8" required autocomplete="current-password"></div>
+        ${isRegistering ? '<div class="field"><label for="login-confirm-password">Confirm password</label><input id="login-confirm-password" type="password" minlength="8" required autocomplete="new-password"></div>' : ''}
+        <button class="btn btn-primary" type="submit" id="login-submit">${isRegistering ? 'Create account' : 'Sign in'}</button>
+        <button class="login-switch" type="button" id="login-switch">${isRegistering ? 'Already have an account? Sign in' : 'Need an account? Register'}</button>
+      </form>
+    </main>`;
+  document.getElementById('login-switch').addEventListener('click', ()=>renderLogin('', isRegistering ? 'login' : 'register'));
+  document.getElementById('login-form').addEventListener('submit', async (event)=>{
+    event.preventDefault();
+    const button = document.getElementById('login-submit');
+    button.disabled = true;
+    button.textContent = 'Please wait…';
+    try{
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      if(isRegistering){
+        const name = document.getElementById('login-name').value;
+        const confirmation = document.getElementById('login-confirm-password').value;
+        if(password !== confirmation) throw new Error('Passwords do not match');
+        await register(name, email, password);
+        renderLogin('Account created — please sign in', 'login');
+        return;
+      }else{
+        await login(email, password);
+      }
+      await loadAll();
+      render();
+    }catch(e){
+      renderLogin(e.message, mode);
+    }
+  });
+}
+
+async function loadAll(){
+  const keys = ['employees','claims','hmoPlans','enrollments','bonusPlans','payrollRuns'];
+  const seeds = {employees:SEED_EMPLOYEES, claims:SEED_CLAIMS, hmoPlans:SEED_HMO_PLANS, enrollments:SEED_ENROLLMENTS, bonusPlans:SEED_BONUS_PLANS, payrollRuns:[]};
+  for(const k of keys){
+    try{
+      const r = await window.storage.get(k, false);
+      STATE[k] = r ? JSON.parse(r.value) : seeds[k];
+      if(!r){ await window.storage.set(k, JSON.stringify(seeds[k]), false); }
+    }catch(e){
+      STATE[k] = seeds[k];
+      try{ await window.storage.set(k, JSON.stringify(seeds[k]), false); }catch(e2){}
+    }
+  }
+}
+async function persist(key){
+  try{ await window.storage.set(key, JSON.stringify(STATE[key]), false); }
+  catch(e){ console.error('storage error', e); }
+}
+
+/* ============================= UTILITIES ============================= */
+function peso(n){
+  const v = Math.round((n||0)*100)/100;
+  return '₱' + v.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function pesoShort(n){
+  const v = Math.round(n||0);
+  return '₱' + v.toLocaleString('en-PH');
+}
+function uid(prefix){ return prefix + Math.random().toString(36).slice(2,8); }
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d+'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-PH', {year:'numeric', month:'short', day:'numeric'});
+}
+function empName(id){ const e = STATE.employees.find(x=>x.id===id); return e ? e.name : 'Unknown'; }
+function emp(id){ return STATE.employees.find(x=>x.id===id); }
+function planName(id){ const p = STATE.hmoPlans.find(x=>x.id===id); return p ? p.name : 'Unknown'; }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ---- Philippine statutory deduction approximations (simplified, for demo use) ---- */
+function calcSSS(monthly){
+  const capped = Math.min(Math.max(monthly, 4000), 30000);
+  return Math.round(capped * 0.045 * 100) / 100;
+}
+function calcPhilHealth(monthly){
+  const capped = Math.min(Math.max(monthly, 10000), 100000);
+  return Math.round(capped * 0.025 * 100) / 100;
+}
+function calcPagIbig(monthly){
+  return Math.round(Math.min(monthly * 0.02, 200) * 100) / 100;
+}
+function calcWithholdingTax(taxableMonthly){
+  const t = taxableMonthly;
+  let tax = 0;
+  if(t <= 20833) tax = 0;
+  else if(t <= 33332) tax = (t - 20833) * 0.15;
+  else if(t <= 66666) tax = 1875 + (t - 33333) * 0.20;
+  else if(t <= 166666) tax = 8541.80 + (t - 66667) * 0.25;
+  else if(t <= 666666) tax = 33541.80 + (t - 166667) * 0.30;
+  else tax = 183541.80 + (t - 666667) * 0.35;
+  return Math.round(Math.max(tax,0) * 100) / 100;
+}
+function computePayrollEntry(employee, allowance=1500, adjustment=0){
+  const basic = employee.baseSalary;
+  const sss = calcSSS(basic);
+  const philhealth = calcPhilHealth(basic);
+  const pagibig = calcPagIbig(basic);
+  const taxable = basic - sss - philhealth - pagibig;
+  const tax = calcWithholdingTax(taxable);
+  const totalDeductions = sss + philhealth + pagibig + tax;
+  const grossPay = basic + allowance;
+  const netPay = grossPay - totalDeductions + Number(adjustment||0);
+  return {employeeId: employee.id, basic, allowance, sss, philhealth, pagibig, tax, totalDeductions, grossPay, adjustment:Number(adjustment||0), netPay};
+}
+
+/* ============================= ICONS ============================= */
+const ICONS = {
+  dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+  payroll: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h4M8 17h8"/></svg>',
+  comp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  claims: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>',
+  hmo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.35-9.5-8.8C.7 8.4 2.3 5 5.6 5c1.9 0 3.3 1 4.4 2.6C11.1 6 12.5 5 14.4 5c3.3 0 4.9 3.4 3.1 7.2C19.9 16.6 12.9 21 12.9 21z"/></svg>',
+};
+
+/* ============================= RENDER: SHELL ============================= */
+function render(){
+  const app = document.getElementById('app');
+  const navItems = [
+    {id:'dashboard', label:'HR Analytics Dashboard', icon:ICONS.dashboard},
+    {id:'payroll', label:'Payroll Management', icon:ICONS.payroll},
+    {id:'compensation', label:'Compensation Planning', icon:ICONS.comp},
+    {id:'claims', label:'Claims and Reimbursement', icon:ICONS.claims},
+    {id:'hmo', label:'HMO & Benefits Administration', icon:ICONS.hmo},
+  ];
+  app.innerHTML = `
+    <div class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">Oxford Suites Makati</div>
+        <div class="brand-sub">Payroll &amp; Benefits</div>
+      </div>
+      <div class="nav">
+        ${navItems.map(n=>`
+          <div class="nav-item ${STATE.activeView===n.id?'active':''}" data-nav="${n.id}">
+            ${n.icon}<span>${n.label}</span>
+          </div>`).join('')}
+      </div>
+      <div class="sidebar-foot">
+        ${AUTH_USER ? `<div class="user-area"><span>${AUTH_USER.name}</span><button class="logout-button" id="btn-logout">Sign out</button></div>` : ''}
+        <div style="margin-top:12px;">Hotel &amp; Restaurant Payroll<br>System &nbsp;·&nbsp; v1.0</div>
+      </div>
+    </div>
+    <div class="main" id="main"></div>
+  `;
+  app.querySelectorAll('[data-nav]').forEach(el=>{
+    el.addEventListener('click', ()=>{ STATE.activeView = el.dataset.nav; render(); });
+  });
+  const logoutBtn = document.getElementById('btn-logout');
+  if(logoutBtn) logoutBtn.addEventListener('click', ()=>{ clearAuth(); renderLogin(); });
+  renderView();
+}
+
+function setTop(title, desc, actionHtml){
+  return `<div class="topbar">
+    <div><div class="page-title">${title}</div><div class="page-desc">${desc}</div></div>
+    <div>${actionHtml||''}</div>
+  </div>`;
+}
+
+function renderView(){
+  const main = document.getElementById('main');
+  let html = '';
+  if(STATE.activeView==='dashboard') html = viewDashboard();
+  else if(STATE.activeView==='payroll') html = viewPayroll();
+  else if(STATE.activeView==='compensation') html = viewCompensation();
+  else if(STATE.activeView==='claims') html = viewClaims();
+  else if(STATE.activeView==='hmo') html = viewHMO();
+  main.innerHTML = html;
+  bindViewEvents();
+}
+
+/* ============================= VIEW: DASHBOARD ============================= */
+function viewDashboard(){
+  const active = STATE.employees.filter(e=>e.status==='Active');
+  const totalPayroll = active.reduce((s,e)=>s+e.baseSalary,0);
+  const pendingClaims = STATE.claims.filter(c=>c.status==='Pending');
+  const enrolledCount = STATE.enrollments.filter(e=>e.status==='Active').length;
+  const enrollRate = active.length ? Math.round((enrolledCount/active.length)*100) : 0;
+
+  const deptCounts = {};
+  DEPARTMENTS.forEach(d=>deptCounts[d]=0);
+  active.forEach(e=>{ deptCounts[e.department] = (deptCounts[e.department]||0)+1; });
+  const maxDept = Math.max(...Object.values(deptCounts), 1);
+
+  const claimsByStatus = {Approved:0, Pending:0, Rejected:0};
+  STATE.claims.forEach(c=>{ claimsByStatus[c.status] = (claimsByStatus[c.status]||0)+1; });
+
+  const lastRun = STATE.payrollRuns[STATE.payrollRuns.length-1];
+  const recentClaims = [...STATE.claims].sort((a,b)=>b.dateFiled.localeCompare(a.dateFiled)).slice(0,5);
+
+  return setTop('HR Analytics Dashboard', 'A single-page view of headcount, payroll cost, claims and benefits enrollment across the property.') + `
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Active Employees</div>
+        <div class="kpi-value">${active.length}</div>
+        <div class="kpi-sub">Across ${DEPARTMENTS.length} departments</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Monthly Base Payroll</div>
+        <div class="kpi-value num" style="font-size:22px">${pesoShort(totalPayroll)}</div>
+        <div class="kpi-sub">Before statutory deductions</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pending Claims</div>
+        <div class="kpi-value">${pendingClaims.length}</div>
+        <div class="kpi-sub">${pesoShort(pendingClaims.reduce((s,c)=>s+c.amount,0))} awaiting review</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">HMO Enrollment</div>
+        <div class="kpi-value">${enrollRate}%</div>
+        <div class="kpi-sub">${enrolledCount} of ${active.length} employees enrolled</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:18px; align-items:start;">
+      <div class="panel">
+        <div class="panel-head"><div><div class="panel-title">Headcount by department</div></div></div>
+        <div class="panel-body">
+          ${DEPARTMENTS.map(d=>`
+            <div class="bar-row">
+              <div class="bar-label">${d}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${(deptCounts[d]/maxDept)*100}%"></div></div>
+              <div class="bar-val">${deptCounts[d]}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Claims by status</div></div>
+        <div class="panel-body">
+          ${['Approved','Pending','Rejected'].map(s=>{
+            const total = STATE.claims.length || 1;
+            const cls = s==='Approved'?'sage':(s==='Pending'?'brass':'rust');
+            return `<div class="bar-row">
+              <div class="bar-label">${s}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${(claimsByStatus[s]/total)*100}%; background:var(--${cls})"></div></div>
+              <div class="bar-val">${claimsByStatus[s]}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:4px;">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Latest payroll run</div></div>
+        <div class="panel-body">
+          ${lastRun ? `
+            <div class="flex-between" style="margin-bottom:10px;">
+              <div><strong>${lastRun.period}</strong><div class="row-sub">Run on ${fmtDate(lastRun.dateRun)}</div></div>
+              <div class="num" style="font-size:16px; font-weight:600; color:var(--navy)">${pesoShort(lastRun.entries.reduce((s,e)=>s+e.netPay,0))}</div>
+            </div>
+            <div class="footnote">${lastRun.entries.length} employees paid · net of statutory deductions</div>
+          ` : `<div class="empty">No payroll has been run yet. Go to Payroll Management to run one.</div>`}
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Recent claims activity</div></div>
+        <div class="panel-body" style="padding:8px 0;">
+          ${recentClaims.length ? recentClaims.map(c=>`
+            <div class="flex-between" style="padding:9px 20px; border-bottom:1px solid var(--hairline);">
+              <div>
+                <div style="font-size:13px; font-weight:600;">${empName(c.employeeId)} <span class="muted" style="font-weight:400">— ${c.type}</span></div>
+                <div class="row-sub">${fmtDate(c.dateFiled)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="num" style="font-size:13px;">${pesoShort(c.amount)}</div>
+                <span class="stamp ${c.status.toLowerCase()}" style="margin-top:3px; transform:rotate(0)">${c.status}</span>
+              </div>
+            </div>`).join('') : `<div class="empty">No claims filed yet.</div>`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================= VIEW: PAYROLL ============================= */
+function viewPayroll(){
+  const active = STATE.employees.filter(e=>e.status==='Active');
+  const lastRun = STATE.payrollRuns[STATE.payrollRuns.length-1];
+  return setTop('Payroll Management', 'Run monthly payroll for active employees and review payout history.',
+    `<button class="btn btn-brass" id="btn-run-payroll">Run payroll</button>`) + `
+  <div class="content">
+    <div class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Employee roster</div><div class="panel-title-sm">${active.length} active employees</div></div>
+        <button class="btn btn-ghost btn-sm" id="btn-add-employee">Add employee</button>
+      </div>
+      <div class="panel-body" style="padding:0;">
+        <table class="ledger">
+          <thead><tr><th>Employee</th><th>Department</th><th class="num">Monthly Base</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${active.map(e=>`
+              <tr>
+                <td><div class="row-name">${e.name}</div><div class="row-sub">${e.position}</div></td>
+                <td>${e.department}</td>
+                <td class="num">${peso(e.baseSalary)}</td>
+                <td><span class="stamp active">Active</span></td>
+                <td><button class="btn-danger-text" data-deactivate="${e.id}">Deactivate</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        ${active.length===0 ? '<div class="empty">No active employees yet.</div>' : ''}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div><div class="panel-title">Payroll run history</div></div></div>
+      <div class="panel-body" style="padding:0;">
+        ${STATE.payrollRuns.length ? `
+        <table class="ledger">
+          <thead><tr><th>Period</th><th>Date run</th><th class="num">Employees</th><th class="num">Total net pay</th><th></th></tr></thead>
+          <tbody>
+            ${[...STATE.payrollRuns].reverse().map(r=>`
+              <tr>
+                <td class="row-name">${r.period}</td>
+                <td>${fmtDate(r.dateRun)}</td>
+                <td class="num">${r.entries.length}</td>
+                <td class="num">${peso(r.entries.reduce((s,e)=>s+e.netPay,0))}</td>
+                <td><button class="btn btn-ghost btn-sm" data-view-run="${r.id}">View breakdown</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : `<div class="empty">No payroll runs yet. Click "Run payroll" to generate the first one.</div>`}
+      </div>
+    </div>
+
+    <div class="footnote">Statutory deductions (SSS, PhilHealth, Pag-IBIG, withholding tax) are simplified approximations for demonstration purposes. Verify against the current official contribution tables before using this for actual payroll processing.</div>
+  </div>`;
+}
+
+function openRunPayrollModal(){
+  const active = STATE.employees.filter(e=>e.status==='Active');
+  const now = new Date();
+  const period = now.toLocaleDateString('en-PH', {year:'numeric', month:'long'});
+  const entries = active.map(e=>computePayrollEntry(e, 1500, 0));
+  showModal(`Run payroll — ${period}`, `
+    <div class="field"><label>Pay period</label><input type="text" id="run-period" value="${period}"></div>
+    <div class="field"><label>Standard allowance per employee (transportation &amp; meal)</label><input type="number" id="run-allowance" value="1500"></div>
+    <div class="divider"></div>
+    <table class="ledger" style="font-size:12.5px;">
+      <thead><tr><th>Employee</th><th class="num">Basic</th><th class="num">Deductions</th><th class="num">Net pay</th></tr></thead>
+      <tbody id="run-preview-body">
+        ${entries.map(en=>`
+          <tr>
+            <td>${empName(en.employeeId)}</td>
+            <td class="num">${peso(en.basic)}</td>
+            <td class="num">${peso(en.totalDeductions)}</td>
+            <td class="num" style="font-weight:600;">${peso(en.netPay)}</td>
+          </tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="3">Total net pay</td><td class="num">${peso(entries.reduce((s,e)=>s+e.netPay,0))}</td></tr></tfoot>
+    </table>
+    <div class="footnote">This will save a new payroll run for all ${active.length} active employees using each employee's current base salary.</div>
+    <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="cancel-run">Cancel</button>
+      <button class="btn btn-brass" id="confirm-run">Save payroll run</button>
+    </div>
+  `);
+  document.getElementById('run-allowance').addEventListener('input', (ev)=>{
+    const allowance = Number(ev.target.value)||0;
+    const newEntries = active.map(e=>computePayrollEntry(e, allowance, 0));
+    document.getElementById('run-preview-body').innerHTML = newEntries.map(en=>`
+      <tr>
+        <td>${empName(en.employeeId)}</td>
+        <td class="num">${peso(en.basic)}</td>
+        <td class="num">${peso(en.totalDeductions)}</td>
+        <td class="num" style="font-weight:600;">${peso(en.netPay)}</td>
+      </tr>`).join('');
+  });
+  document.getElementById('cancel-run').addEventListener('click', closeModal);
+  document.getElementById('confirm-run').addEventListener('click', async ()=>{
+    const period = document.getElementById('run-period').value || period;
+    const allowance = Number(document.getElementById('run-allowance').value)||0;
+    const finalEntries = active.map(e=>computePayrollEntry(e, allowance, 0));
+    STATE.payrollRuns.push({id:uid('run'), period, dateRun:new Date().toISOString().slice(0,10), entries:finalEntries});
+    await persist('payrollRuns');
+    closeModal();
+    renderView();
+    toast('Payroll run saved for ' + period);
+  });
+}
+
+function openRunBreakdown(runId){
+  const run = STATE.payrollRuns.find(r=>r.id===runId);
+  if(!run) return;
+  showModal(`${run.period} — payroll breakdown`, `
+    <table class="ledger" style="font-size:12.5px;">
+      <thead><tr><th>Employee</th><th class="num">Net pay</th><th></th></tr></thead>
+      <tbody>
+        ${run.entries.map(en=>`
+          <tr>
+            <td>${empName(en.employeeId)}</td>
+            <td class="num" style="font-weight:600;">${peso(en.netPay)}</td>
+            <td><button class="btn btn-ghost btn-sm" data-payslip="${run.id}|${en.employeeId}">View payslip</button></td>
+          </tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td>Total</td><td class="num">${peso(run.entries.reduce((s,e)=>s+e.netPay,0))}</td><td></td></tr></tfoot>
+    </table>
+  `);
+  document.querySelectorAll('[data-payslip]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const [rId, eId] = b.dataset.payslip.split('|');
+      openPayslip(rId, eId);
+    });
+  });
+}
+
+function openPayslip(runId, employeeId){
+  const run = STATE.payrollRuns.find(r=>r.id===runId);
+  const entry = run.entries.find(e=>e.employeeId===employeeId);
+  const e = emp(employeeId);
+  showModal(`Payslip — ${e.name}`, `
+    <div class="row-sub" style="margin-bottom:14px;">${e.position} · ${e.department} · ${run.period}</div>
+    <div class="payslip-line"><span>Basic pay</span><span class="num">${peso(entry.basic)}</span></div>
+    <div class="payslip-line"><span>Allowance</span><span class="num">${peso(entry.allowance)}</span></div>
+    <div class="payslip-line" style="font-weight:600;"><span>Gross pay</span><span class="num">${peso(entry.grossPay)}</span></div>
+    <div style="height:8px;"></div>
+    <div class="payslip-line"><span>SSS contribution</span><span class="num">- ${peso(entry.sss)}</span></div>
+    <div class="payslip-line"><span>PhilHealth contribution</span><span class="num">- ${peso(entry.philhealth)}</span></div>
+    <div class="payslip-line"><span>Pag-IBIG contribution</span><span class="num">- ${peso(entry.pagibig)}</span></div>
+    <div class="payslip-line"><span>Withholding tax</span><span class="num">- ${peso(entry.tax)}</span></div>
+    <div class="payslip-total"><span>Net pay</span><span class="num">${peso(entry.netPay)}</span></div>
+    <div class="footnote">Deduction figures are simplified approximations for demonstration purposes.</div>
+  `);
+}
+
+function openAddEmployeeModal(){
+  showModal('Add employee', `
+    <div class="field"><label>Full name</label><input type="text" id="ne-name" placeholder="Juan Dela Cruz"></div>
+    <div class="field-row">
+      <div class="field"><label>Position</label><input type="text" id="ne-position" placeholder="Front Desk Officer"></div>
+      <div class="field"><label>Department</label>
+        <select id="ne-department">${DEPARTMENTS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Monthly base salary (₱)</label><input type="number" id="ne-salary" placeholder="18000"></div>
+      <div class="field"><label>Date hired</label><input type="date" id="ne-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    </div>
+    <div style="margin-top:6px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="cancel-ne">Cancel</button>
+      <button class="btn btn-brass" id="confirm-ne">Add employee</button>
+    </div>
+  `);
+  document.getElementById('cancel-ne').addEventListener('click', closeModal);
+  document.getElementById('confirm-ne').addEventListener('click', async ()=>{
+    const name = document.getElementById('ne-name').value.trim();
+    const position = document.getElementById('ne-position').value.trim();
+    const department = document.getElementById('ne-department').value;
+    const salary = Number(document.getElementById('ne-salary').value)||0;
+    const dateHired = document.getElementById('ne-date').value;
+    if(!name || !position || !salary){ toast('Please fill in name, position, and salary'); return; }
+    STATE.employees.push({id:uid('e'), name, position, department, dateHired, baseSalary:salary, status:'Active'});
+    await persist('employees');
+    closeModal(); renderView();
+    toast('Employee added');
+  });
+}
+
+/* ============================= VIEW: COMPENSATION ============================= */
+function viewCompensation(){
+  const byPosition = {};
+  STATE.employees.filter(e=>e.status==='Active').forEach(e=>{
+    if(!byPosition[e.position]) byPosition[e.position] = {department:e.department, salaries:[]};
+    byPosition[e.position].salaries.push(e.baseSalary);
+  });
+  const grades = Object.entries(byPosition).map(([position, d])=>{
+    const min = Math.min(...d.salaries), max = Math.max(...d.salaries);
+    const mid = Math.round((min+max)/2);
+    return {position, department:d.department, min, mid:d.salaries.length>1?mid:min, max, count:d.salaries.length};
+  }).sort((a,b)=>a.department.localeCompare(b.department));
+
+  return setTop('Compensation Planning', 'Review salary ranges by position and plan bonuses across departments.') + `
+  <div class="content">
+    <div class="panel">
+      <div class="panel-head"><div><div class="panel-title">Salary structure by position</div><div class="panel-title-sm">Derived from current active employee base salaries</div></div></div>
+      <div class="panel-body" style="padding:0;">
+        <table class="ledger">
+          <thead><tr><th>Position</th><th>Department</th><th class="num">Min</th><th class="num">Mid</th><th class="num">Max</th><th class="num">Headcount</th></tr></thead>
+          <tbody>
+            ${grades.map(g=>`
+              <tr>
+                <td class="row-name">${g.position}</td>
+                <td>${g.department}</td>
+                <td class="num">${pesoShort(g.min)}</td>
+                <td class="num">${pesoShort(g.mid)}</td>
+                <td class="num">${pesoShort(g.max)}</td>
+                <td class="num">${g.count}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">13th month &amp; bonus planning</div></div>
+        <button class="btn btn-ghost btn-sm" id="btn-add-bonus">Add bonus plan</button>
+      </div>
+      <div class="panel-body" style="padding:0;">
+        <table class="ledger">
+          <thead><tr><th>Title</th><th>Scope</th><th>Type</th><th>Period</th><th></th></tr></thead>
+          <tbody>
+            ${STATE.bonusPlans.map(b=>`
+              <tr>
+                <td class="row-name">${b.title}<div class="row-sub">${b.notes}</div></td>
+                <td>${b.scope}</td>
+                <td><span class="pill">${b.type}</span></td>
+                <td>${b.period}</td>
+                <td><button class="btn-danger-text" data-del-bonus="${b.id}">Remove</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        ${STATE.bonusPlans.length===0 ? '<div class="empty">No bonus plans yet.</div>' : ''}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">13th month pay estimator</div></div>
+      <div class="panel-body">
+        <div class="field-row">
+          <div class="field"><label>Employee</label>
+            <select id="tm-employee">${STATE.employees.filter(e=>e.status==='Active').map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Months worked this year</label><input type="number" id="tm-months" value="12" min="1" max="12"></div>
+        </div>
+        <div id="tm-result" class="kpi-card" style="max-width:280px;">
+          <div class="kpi-label">Estimated 13th month pay</div>
+          <div class="kpi-value num" style="font-size:22px" id="tm-value">—</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function calc13thMonth(){
+  const empId = document.getElementById('tm-employee')?.value;
+  const months = Number(document.getElementById('tm-months')?.value)||12;
+  const e = emp(empId);
+  if(!e) return;
+  const val = (e.baseSalary * months) / 12;
+  document.getElementById('tm-value').textContent = pesoShort(val);
+}
+
+function openAddBonusModal(){
+  showModal('Add bonus plan', `
+    <div class="field"><label>Title</label><input type="text" id="nb-title" placeholder="Year-end performance bonus"></div>
+    <div class="field-row">
+      <div class="field"><label>Scope</label>
+        <select id="nb-scope"><option value="All Employees">All Employees</option>${DEPARTMENTS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Type</label>
+        <select id="nb-type"><option>Statutory</option><option>Discretionary</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Period</label><input type="text" id="nb-period" placeholder="Q4 2026"></div>
+    <div class="field"><label>Notes</label><textarea id="nb-notes" rows="2" placeholder="Eligibility or computation notes"></textarea></div>
+    <div style="margin-top:6px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="cancel-nb">Cancel</button>
+      <button class="btn btn-brass" id="confirm-nb">Add plan</button>
+    </div>
+  `);
+  document.getElementById('cancel-nb').addEventListener('click', closeModal);
+  document.getElementById('confirm-nb').addEventListener('click', async ()=>{
+    const title = document.getElementById('nb-title').value.trim();
+    if(!title){ toast('Please enter a title'); return; }
+    STATE.bonusPlans.push({
+      id:uid('b'), title,
+      scope:document.getElementById('nb-scope').value,
+      type:document.getElementById('nb-type').value,
+      period:document.getElementById('nb-period').value || 'Unspecified',
+      notes:document.getElementById('nb-notes').value.trim() || '—',
+    });
+    await persist('bonusPlans');
+    closeModal(); renderView();
+    toast('Bonus plan added');
+  });
+}
+
+/* ============================= VIEW: CLAIMS ============================= */
+function viewClaims(){
+  const totalApproved = STATE.claims.filter(c=>c.status==='Approved').reduce((s,c)=>s+c.amount,0);
+  const totalPending = STATE.claims.filter(c=>c.status==='Pending').reduce((s,c)=>s+c.amount,0);
+  return setTop('Claims and Reimbursement', 'File and track employee claims for medical, transportation, meal, training, and other reimbursable expenses.',
+    `<button class="btn btn-brass" id="btn-new-claim">File a claim</button>`) + `
+  <div class="content">
+    <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit, minmax(170px,1fr));">
+      <div class="kpi-card"><div class="kpi-label">Total claims</div><div class="kpi-value">${STATE.claims.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Pending amount</div><div class="kpi-value num" style="font-size:20px">${pesoShort(totalPending)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Approved amount</div><div class="kpi-value num" style="font-size:20px">${pesoShort(totalApproved)}</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">All claims</div></div>
+      <div class="panel-body" style="padding:0;">
+        <table class="ledger">
+          <thead><tr><th>Employee</th><th>Type</th><th>Description</th><th class="num">Amount</th><th>Filed</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${[...STATE.claims].sort((a,b)=>b.dateFiled.localeCompare(a.dateFiled)).map(c=>`
+              <tr>
+                <td class="row-name">${empName(c.employeeId)}</td>
+                <td>${c.type}</td>
+                <td class="muted" style="max-width:220px;">${c.description}</td>
+                <td class="num">${peso(c.amount)}</td>
+                <td>${fmtDate(c.dateFiled)}</td>
+                <td><span class="stamp ${c.status.toLowerCase()}">${c.status}</span></td>
+                <td>
+                  ${c.status==='Pending' ? `
+                    <button class="btn-sage-text" data-claim-approve="${c.id}">Approve</button>
+                    <button class="btn-danger-text" data-claim-reject="${c.id}" style="margin-left:8px;">Reject</button>
+                  ` : ''}
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        ${STATE.claims.length===0 ? '<div class="empty">No claims filed yet.</div>' : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function openNewClaimModal(){
+  showModal('File a claim', `
+    <div class="field"><label>Employee</label>
+      <select id="nc-employee">${STATE.employees.filter(e=>e.status==='Active').map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Claim type</label>
+        <select id="nc-type"><option>Medical</option><option>Transportation</option><option>Meal</option><option>Training</option><option>Other</option></select>
+      </div>
+      <div class="field"><label>Amount (₱)</label><input type="number" id="nc-amount" placeholder="1500"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea id="nc-desc" rows="2" placeholder="Brief description of the expense"></textarea></div>
+    <div class="field"><label>Date filed</label><input type="date" id="nc-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div style="margin-top:6px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="cancel-nc">Cancel</button>
+      <button class="btn btn-brass" id="confirm-nc">Submit claim</button>
+    </div>
+  `);
+  document.getElementById('cancel-nc').addEventListener('click', closeModal);
+  document.getElementById('confirm-nc').addEventListener('click', async ()=>{
+    const amount = Number(document.getElementById('nc-amount').value)||0;
+    if(!amount){ toast('Please enter an amount'); return; }
+    STATE.claims.push({
+      id:uid('c'), employeeId:document.getElementById('nc-employee').value,
+      type:document.getElementById('nc-type').value, amount,
+      description:document.getElementById('nc-desc').value.trim() || '—',
+      dateFiled:document.getElementById('nc-date').value, status:'Pending',
+    });
+    await persist('claims');
+    closeModal(); renderView();
+    toast('Claim submitted');
+  });
+}
+
+/* ============================= VIEW: HMO ============================= */
+function viewHMO(){
+  const active = STATE.employees.filter(e=>e.status==='Active');
+  const enrolledIds = new Set(STATE.enrollments.filter(e=>e.status==='Active').map(e=>e.employeeId));
+  const totalPremium = STATE.enrollments.filter(e=>e.status==='Active').reduce((s,en)=>{
+    const p = STATE.hmoPlans.find(pl=>pl.id===en.planId);
+    return s + (p?p.premium:0);
+  },0);
+
+  return setTop('HMO & Benefits Administration', 'Manage HMO plans and employee enrollment across the property.',
+    `<button class="btn btn-brass" id="btn-new-enrollment">Enroll employee</button>`) + `
+  <div class="content">
+    <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit, minmax(170px,1fr));">
+      <div class="kpi-card"><div class="kpi-label">HMO plans offered</div><div class="kpi-value">${STATE.hmoPlans.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Employees enrolled</div><div class="kpi-value">${enrolledIds.size} / ${active.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Monthly premium cost</div><div class="kpi-value num" style="font-size:20px">${pesoShort(totalPremium)}</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">HMO plans</div></div>
+      <div class="panel-body" style="padding:0;">
+        <table class="ledger">
+          <thead><tr><th>Plan</th><th>Description</th><th class="num">Annual coverage</th><th class="num">Monthly premium</th></tr></thead>
+          <tbody>
+            ${STATE.hmoPlans.map(p=>`
+              <tr>
+                <td class="row-name">${p.name}</td>
+                <td class="muted">${p.description}</td>
+                <td class="num">${pesoShort(p.coverage)}</td>
+                <td class="num">${peso(p.premium)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Employee enrollment</div></div>
+      <div class="panel-body" style="padding:0;">
+        <table class="ledger">
+          <thead><tr><th>Employee</th><th>Plan</th><th class="num">Dependents</th><th>Enrolled since</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${STATE.enrollments.map(en=>`
+              <tr>
+                <td class="row-name">${empName(en.employeeId)}</td>
+                <td>${planName(en.planId)}</td>
+                <td class="num">${en.dependents}</td>
+                <td>${fmtDate(en.dateEnrolled)}</td>
+                <td><span class="stamp ${en.status.toLowerCase()}">${en.status}</span></td>
+                <td>${en.status==='Active' ? `<button class="btn-danger-text" data-drop-enroll="${en.id}">Drop</button>` : ''}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        ${STATE.enrollments.length===0 ? '<div class="empty">No enrollments yet.</div>' : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function openNewEnrollmentModal(){
+  const active = STATE.employees.filter(e=>e.status==='Active');
+  showModal('Enroll employee in HMO', `
+    <div class="field"><label>Employee</label>
+      <select id="ne2-employee">${active.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Plan</label>
+        <select id="ne2-plan">${STATE.hmoPlans.map(p=>`<option value="${p.id}">${p.name} — ${peso(p.premium)}/mo</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Number of dependents</label><input type="number" id="ne2-dependents" value="0" min="0"></div>
+    </div>
+    <div class="field"><label>Enrollment date</label><input type="date" id="ne2-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div style="margin-top:6px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="cancel-ne2">Cancel</button>
+      <button class="btn btn-brass" id="confirm-ne2">Enroll</button>
+    </div>
+  `);
+  document.getElementById('cancel-ne2').addEventListener('click', closeModal);
+  document.getElementById('confirm-ne2').addEventListener('click', async ()=>{
+    STATE.enrollments.push({
+      id:uid('n'), employeeId:document.getElementById('ne2-employee').value,
+      planId:document.getElementById('ne2-plan').value,
+      dependents:Number(document.getElementById('ne2-dependents').value)||0,
+      dateEnrolled:document.getElementById('ne2-date').value, status:'Active',
+    });
+    await persist('enrollments');
+    closeModal(); renderView();
+    toast('Employee enrolled');
+  });
+}
+
+/* ============================= MODAL HELPERS ============================= */
+function showModal(title, bodyHtml){
+  let backdrop = document.getElementById('modal-backdrop');
+  if(backdrop) backdrop.remove();
+  backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.id = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">${title}</div>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">${bodyHtml}</div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (ev)=>{ if(ev.target===backdrop) closeModal(); });
+}
+function closeModal(){
+  const b = document.getElementById('modal-backdrop');
+  if(b) b.remove();
+}
+
+/* ============================= EVENT BINDING ============================= */
+function bindViewEvents(){
+  const byId = (id, fn) => { const el = document.getElementById(id); if(el) el.addEventListener('click', fn); };
+
+  byId('btn-run-payroll', openRunPayrollModal);
+  byId('btn-add-employee', openAddEmployeeModal);
+  byId('btn-add-bonus', openAddBonusModal);
+  byId('btn-new-claim', openNewClaimModal);
+  byId('btn-new-enrollment', openNewEnrollmentModal);
+
+  document.querySelectorAll('[data-view-run]').forEach(b=>b.addEventListener('click', ()=>openRunBreakdown(b.dataset.viewRun)));
+
+  document.querySelectorAll('[data-deactivate]').forEach(b=>b.addEventListener('click', async ()=>{
+    const e = emp(b.dataset.deactivate);
+    if(e){ e.status='Inactive'; await persist('employees'); renderView(); toast(e.name + ' marked inactive'); }
+  }));
+
+  document.querySelectorAll('[data-claim-approve]').forEach(b=>b.addEventListener('click', async ()=>{
+    const c = STATE.claims.find(x=>x.id===b.dataset.claimApprove);
+    if(c){ c.status='Approved'; await persist('claims'); renderView(); toast('Claim approved'); }
+  }));
+  document.querySelectorAll('[data-claim-reject]').forEach(b=>b.addEventListener('click', async ()=>{
+    const c = STATE.claims.find(x=>x.id===b.dataset.claimReject);
+    if(c){ c.status='Rejected'; await persist('claims'); renderView(); toast('Claim rejected'); }
+  }));
+
+  document.querySelectorAll('[data-del-bonus]').forEach(b=>b.addEventListener('click', async ()=>{
+    STATE.bonusPlans = STATE.bonusPlans.filter(x=>x.id!==b.dataset.delBonus);
+    await persist('bonusPlans'); renderView(); toast('Bonus plan removed');
+  }));
+
+  document.querySelectorAll('[data-drop-enroll]').forEach(b=>b.addEventListener('click', async ()=>{
+    const en = STATE.enrollments.find(x=>x.id===b.dataset.dropEnroll);
+    if(en){ en.status='Inactive'; await persist('enrollments'); renderView(); toast('Enrollment dropped'); }
+  }));
+
+  const tmEmp = document.getElementById('tm-employee');
+  const tmMonths = document.getElementById('tm-months');
+  if(tmEmp && tmMonths){
+    tmEmp.addEventListener('change', calc13thMonth);
+    tmMonths.addEventListener('input', calc13thMonth);
+    calc13thMonth();
+  }
+}
+
+/* ============================= INIT ============================= */
+(async function init(){
+  if(await restoreAuth()){
+    await loadAll();
+    render();
+  }else{
+    renderLogin();
+  }
+})();
+</script>
+</body>
+</html>

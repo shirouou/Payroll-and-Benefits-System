@@ -1,0 +1,45 @@
+:root {
+  --navy: #b31217;
+  --navy-light: #d84c58;
+  --navy-mid: #7d0d14;
+  --brass: #ffffff;
+  --brass-light: #fff3f4;
+  --brass-dim: #efb7bc;
+  --linen: #fff7f8;
+  --paper: #ffffff;
+  --ink: #2a1c1d;
+  --ink-soft: #6d4d50;
+  --ink-faint: #9a7276;
+  --teal: #b31217;
+  --teal-bg: #fbe5e7;
+  --rust: #c62835;
+  --rust-bg: #fbe9eb;
+  --sage: #9f1d2d;
+  --sage-bg: #f9ecee;
+  --hairline: #f0d8db;
+  --shadow: 0 1px 3px rgba(179, 18, 23, 0.08), 0 1px 2px rgba(179, 18, 23, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--linen);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: 'IBM Plex Mono', monospace;
+}

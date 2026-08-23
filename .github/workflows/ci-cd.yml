@@ -1,0 +1,169 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: docker.io
+  BACKEND_IMAGE: payroll-backend
+  FRONTEND_IMAGE: payroll-frontend
+
+jobs:
+  # Backend build and test
+  build-backend:
+    runs-on: ubuntu-latest
+    name: Build & Test Backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: backend
+        run: npm test
+
+      - name: Lint check
+        working-directory: backend
+        run: |
+          if [ -f .eslintrc ]; then npm run lint || echo "No linter configured"; fi
+
+  # Frontend build and test
+  build-frontend:
+    runs-on: ubuntu-latest
+    name: Build & Test Frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+
+  # Build and push Docker images (only on main branch)
+  docker-build:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    name: Build & Push Docker Images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: secrets.DOCKER_USERNAME != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (backend)
+        if: secrets.DOCKER_USERNAME != ''
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push backend image
+        if: secrets.DOCKER_USERNAME != ''
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:buildcache,mode=max
+
+      - name: Extract metadata (frontend)
+        if: secrets.DOCKER_USERNAME != ''
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push frontend image
+        if: secrets.DOCKER_USERNAME != ''
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+  # Deploy to Heroku (optional - requires setup)
+  deploy-heroku:
+    needs: [docker-build]
+    runs-on: ubuntu-latest
+    name: Deploy to Heroku
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.HEROKU_API_KEY != ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy backend to Heroku
+        if: secrets.HEROKU_APP_NAME_BACKEND != ''
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME_BACKEND }}
+          appdir: backend
+          procfile: "Procfile"
+
+      - name: Deploy frontend to Heroku
+        if: secrets.HEROKU_APP_NAME_FRONTEND != ''
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME_FRONTEND }}
+          appdir: frontend
+          procfile: "Procfile"
+
+  # Notify on failure
+  notify:
+    runs-on: ubuntu-latest
+    name: Notify
+    needs: [build-backend, build-frontend]
+    if: failure()
+    steps:
+      - name: Send notification
+        run: echo "❌ CI/CD pipeline failed. Check the logs for details."
