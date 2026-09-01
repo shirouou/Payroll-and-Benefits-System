@@ -1,25 +1,49 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
 import HMO from './pages/HMO';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider, ToastContainer } from './context/ToastContext';
 import './styles/App.css';
+
+function AccessDenied() {
+  const { logout } = useAuth();
+
+  return (
+    <div className="access-denied">
+      <div className="card">
+        <h2>Access denied</h2>
+        <p>Your role does not have permission to view this section.</p>
+        <button type="button" onClick={logout}>Sign out</button>
+      </div>
+    </div>
+  );
+}
+
+function ProtectedRoute({ allowedRoles, children }) {
+  const { user } = useAuth();
+
+  if (!user) return <Navigate to="/" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) return <AccessDenied />;
+
+  return children;
+}
 
 function AppContent() {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
 
   if (!user) return <Login />;
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/employees', label: 'Employees', icon: '👥' },
-    { path: '/payroll', label: 'Payroll', icon: '💰' },
-    { path: '/hmo', label: 'HMO & Benefits', icon: '🏥' },
-  ];
+    { path: '/', label: 'Dashboard', icon: '📊', roles: ['admin', 'hr', 'payroll', 'viewer'] },
+    { path: '/employees', label: 'Employees', icon: '👥', roles: ['admin', 'hr'] },
+    { path: '/payroll', label: 'Payroll', icon: '💰', roles: ['admin', 'hr', 'payroll'] },
+    { path: '/hmo', label: 'HMO & Benefits', icon: '🏥', roles: ['admin', 'hr'] },
+  ].filter(item => hasRole(...item.roles));
 
   return (
     <div className="app">
@@ -54,9 +78,10 @@ function AppContent() {
         <div className="content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/employees" element={<Employees />} />
-            <Route path="/payroll" element={<Payroll />} />
-            <Route path="/hmo" element={<HMO />} />
+            <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin', 'hr']}><Employees /></ProtectedRoute>} />
+            <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'hr', 'payroll']}><Payroll /></ProtectedRoute>} />
+            <Route path="/hmo" element={<ProtectedRoute allowedRoles={['admin', 'hr']}><HMO /></ProtectedRoute>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </main>
@@ -66,11 +91,14 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+          <ToastContainer />
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

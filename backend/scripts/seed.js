@@ -222,6 +222,20 @@ async function seedDatabase() {
     role: 'admin',
   });
 
+  await User.create({
+    name: 'Payroll Manager',
+    email: process.env.PAYROLL_EMAIL || 'payroll@example.com',
+    password: process.env.PAYROLL_PASSWORD || 'ChangeMe123!',
+    role: 'payroll',
+  });
+
+  await User.create({
+    name: 'Human Resources Manager',
+    email: process.env.HR_EMAIL || 'hr@example.com',
+    password: process.env.HR_PASSWORD || 'ChangeMe123!',
+    role: 'hr',
+  });
+
   console.log('Database seeded successfully');
   console.log(`Created ${employees.length} employees, ${plans.length} HMO plans, ${enrollments.length} enrollments, and sample payroll/claims.`);
 }

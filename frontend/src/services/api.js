@@ -9,21 +9,100 @@ const apiClient = axios.create({
   },
 });
 
+// Track if we're already trying to refresh the token
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  isRefreshing = false;
+  failedQueue = [];
+};
+
+// Request interceptor - add token to requests
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem('payroll_auth_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// Error handling interceptor
+// Response interceptor - handle token refresh and errors
 apiClient.interceptors.response.use(
   response => response,
-  error => {
+  async error => {
+    const originalRequest = error.config;
+
+    // Handle 401 with token refresh
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch(err => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('payroll_refresh_token');
+      
+      if (!refreshToken) {
+        // No refresh token, redirect to login
+        localStorage.removeItem('payroll_auth_token');
+        localStorage.removeItem('payroll_auth_user');
+        window.location.href = '/';
+        return Promise.reject(error);
+      }
+
+      try {
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
+          refreshToken,
+        });
+
+        const { token: newToken, refreshToken: newRefreshToken } = response.data;
+        
+        localStorage.setItem('payroll_auth_token', newToken);
+        localStorage.setItem('payroll_refresh_token', newRefreshToken);
+
+        apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        processQueue(null, newToken);
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        
+        // Refresh failed, redirect to login
+        localStorage.removeItem('payroll_auth_token');
+        localStorage.removeItem('payroll_auth_user');
+        localStorage.removeItem('payroll_refresh_token');
+        window.location.href = '/';
+        
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // For other 401 errors (no refresh possible)
     if (error.response?.status === 401) {
       localStorage.removeItem('payroll_auth_token');
       localStorage.removeItem('payroll_auth_user');
+      localStorage.removeItem('payroll_refresh_token');
+      window.location.href = '/';
     }
-    console.error('API Error:', error.response?.data || error.message);
+
     return Promise.reject(error);
   }
 );

@@ -71,6 +71,14 @@ export default function Login() {
             {mode === 'login' ? 'Use your administrator or HR account to continue.' : 'New accounts are created with viewer access.'}
           </p>
 
+          {mode === 'login' && (
+            <div className="demo-credentials" aria-live="polite">
+              <strong>Demo admin:</strong>
+              <span>admin@example.com</span>
+              <span>Password: ChangeMe123!</span>
+            </div>
+          )}
+
           {error && <div className="login-error" role="alert">{error}</div>}
 
           {mode === 'register' && (

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const swaggerUi = require('swagger-ui-express');
 require('express-async-errors');
 
 // Load environment variables
@@ -9,8 +10,14 @@ dotenv.config();
 // Import database connection
 const connectDB = require('./config/database');
 
+// Import Swagger spec
+const swaggerSpec = require('./config/swagger');
+
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
+const securityHeaders = require('./middleware/securityHeaders');
+const sanitizeInput = require('./middleware/sanitization');
+const { generalLimiter } = require('./middleware/rateLimiting');
 
 // Import routes
 const employeesRouter = require('./routes/employees');
@@ -19,12 +26,21 @@ const hmoRouter = require('./routes/hmo');
 const claimsRouter = require('./routes/claims');
 const bonusesRouter = require('./routes/bonuses');
 const authRouter = require('./routes/auth');
-const { protect } = require('./middleware/auth');
+const { protect, authorize } = require('./middleware/auth');
 
 // Initialize Express app
 const app = express();
 
-// Middleware
+// Security: Middleware order is important
+// 1. Security headers (Helmet)
+app.use(securityHeaders);
+
+// 2. Trust proxy in production for accurate IP addresses
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// 3. CORS
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173').split(',').map(origin => origin.trim());
 app.use(cors({
   origin: (origin, callback) => {
@@ -33,9 +49,18 @@ app.use(cors({
     if (!origin || origin === 'null' || allowedOrigins.includes(origin) || isLocalDevelopmentOrigin) return callback(null, true);
     return callback(new Error('Origin is not allowed by CORS'));
   },
+  credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// 4. Body parsing with size limits
+app.use(express.json({ limit: '10kb' })); // Limit payload size
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// 5. Input sanitization
+app.use(sanitizeInput);
+
+// 6. Rate limiting
+app.use(generalLimiter);
 
 // Connect to database
 connectDB();
@@ -53,6 +78,20 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: {
+    url: '/api-docs.json',
+  },
+  customCss: '.swagger-ui .topbar { display: none }',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
@@ -60,11 +99,11 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRouter);
-app.use('/api/employees', protect, employeesRouter);
-app.use('/api/payroll', protect, payrollRouter);
-app.use('/api/hmo', protect, hmoRouter);
-app.use('/api/claims', protect, claimsRouter);
-app.use('/api/bonuses', protect, bonusesRouter);
+app.use('/api/employees', protect, authorize('admin', 'hr'), employeesRouter);
+app.use('/api/payroll', protect, authorize('admin', 'hr', 'payroll'), payrollRouter);
+app.use('/api/hmo', protect, authorize('admin', 'hr'), hmoRouter);
+app.use('/api/claims', protect, authorize('admin', 'hr', 'payroll'), claimsRouter);
+app.use('/api/bonuses', protect, authorize('admin', 'hr'), bonusesRouter);
 
 // 404 handler
 app.use('*', (req, res) => {

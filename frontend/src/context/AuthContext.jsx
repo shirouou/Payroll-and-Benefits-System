@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const response = await apiClient.post('/auth/login', { email, password });
     saveSession(response.data);
+    return response.data;
   };
 
   const register = async (name, email, password) => {
@@ -36,7 +37,13 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ token, user, login, register, logout }), [token, user]);
+  const hasRole = (...allowedRoles) => !!user && allowedRoles.includes(user.role);
+
+  const value = useMemo(
+    () => ({ token, user, login, register, logout, hasRole }),
+    [token, user]
+  );
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
