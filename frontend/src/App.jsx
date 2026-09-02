@@ -6,7 +6,8 @@ import Payroll from './pages/Payroll';
 import HMO from './pages/HMO';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ToastProvider, ToastContainer } from './context/ToastContext';
+import { ToastProvider } from './context/ToastContext';
+import { ToastContainer } from './components/Toast';
 import './styles/App.css';
 
 function AccessDenied() {
