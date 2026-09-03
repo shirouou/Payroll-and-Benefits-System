@@ -76,7 +76,7 @@ export const Dashboard = () => {
       <Card title="Recent Payroll Records">
         <Table
           columns={[
-            { key: 'employeeId', label: 'Employee' },
+            { key: 'employeeId', label: 'Employee', render: (row) => row.employeeId?.name || row.employeeId || 'N/A' },
             { key: 'paymentPeriod', label: 'Period' },
             { key: 'grossSalary', label: 'Gross', render: (row) => formatPeso(row.grossSalary) },
             { key: 'netPay', label: 'Net Pay', render: (row) => formatPeso(row.netPay) },

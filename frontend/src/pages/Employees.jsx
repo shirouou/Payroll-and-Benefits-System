@@ -60,7 +60,8 @@ export const Employees = () => {
       loadEmployees();
     } catch (error) {
       console.error('Failed to save employee:', error);
-      alert('Error saving employee');
+      const message = error.response?.data?.message;
+      alert(Array.isArray(message) ? message.join(', ') : message || 'Error saving employee');
     }
   };
 

@@ -42,9 +42,11 @@
 
 .login-visual .brand-mark {
   color: #fff;
-  font-family: 'Fraunces', serif;
-  font-size: clamp(1.8rem, 2vw, 2.4rem);
-  letter-spacing: 0.02em;
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-size: clamp(1.6rem, 2vw, 2.2rem);
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .login-visual .brand-sub {
@@ -154,9 +156,11 @@
 
 .login-card .brand-mark {
   color: var(--navy);
-  font-family: 'Fraunces', serif;
-  font-size: 1.8rem;
-  letter-spacing: 0.02em;
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .login-card .brand-sub {

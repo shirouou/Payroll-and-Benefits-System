@@ -127,11 +127,13 @@ export const HMO = () => {
   };
 
   const getEmployeeName = (id) => {
+    if (id && typeof id === 'object') return id.name || 'N/A';
     const emp = employees.find(e => e._id === id);
     return emp?.name || 'N/A';
   };
 
   const getPlanName = (id) => {
+    if (id && typeof id === 'object') return id.name || 'N/A';
     const plan = plans.find(p => p._id === id);
     return plan?.name || 'N/A';
   };

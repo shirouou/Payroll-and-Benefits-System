@@ -9,6 +9,11 @@ const apiClient = axios.create({
   },
 });
 
+const unwrapCollection = response => ({
+  ...response,
+  data: Array.isArray(response.data?.data) ? response.data.data : [],
+});
+
 // Track if we're already trying to refresh the token
 let isRefreshing = false;
 let failedQueue = [];
@@ -109,19 +114,19 @@ apiClient.interceptors.response.use(
 
 // ============ EMPLOYEES ============
 export const employeeAPI = {
-  getAll: () => apiClient.get('/employees'),
+  getAll: () => apiClient.get('/employees').then(unwrapCollection),
   getById: (id) => apiClient.get(`/employees/${id}`),
   create: (data) => apiClient.post('/employees', data),
   update: (id, data) => apiClient.put(`/employees/${id}`, data),
   delete: (id) => apiClient.delete(`/employees/${id}`),
-  getByStatus: (status) => apiClient.get(`/employees/status/${status}`),
+  getByStatus: (status) => apiClient.get(`/employees/status/${status}`).then(unwrapCollection),
 };
 
 // ============ PAYROLL ============
 export const payrollAPI = {
-  getAll: () => apiClient.get('/payroll'),
+  getAll: () => apiClient.get('/payroll').then(unwrapCollection),
   getById: (id) => apiClient.get(`/payroll/${id}`),
-  getByPeriod: (period) => apiClient.get(`/payroll/period/${period}`),
+  getByPeriod: (period) => apiClient.get(`/payroll/period/${period}`).then(unwrapCollection),
   create: (data) => apiClient.post('/payroll', data),
   update: (id, data) => apiClient.put(`/payroll/${id}`, data),
   delete: (id) => apiClient.delete(`/payroll/${id}`),
@@ -131,14 +136,14 @@ export const payrollAPI = {
 // ============ HMO ============
 export const hmoAPI = {
   plans: {
-    getAll: () => apiClient.get('/hmo/plans'),
+    getAll: () => apiClient.get('/hmo/plans').then(unwrapCollection),
     create: (data) => apiClient.post('/hmo/plans', data),
     update: (id, data) => apiClient.put(`/hmo/plans/${id}`, data),
     delete: (id) => apiClient.delete(`/hmo/plans/${id}`),
   },
   enrollments: {
-    getAll: () => apiClient.get('/hmo/enrollments'),
-    getByEmployee: (employeeId) => apiClient.get(`/hmo/enrollments/employee/${employeeId}`),
+    getAll: () => apiClient.get('/hmo/enrollments').then(unwrapCollection),
+    getByEmployee: (employeeId) => apiClient.get(`/hmo/enrollments/employee/${employeeId}`).then(unwrapCollection),
     create: (data) => apiClient.post('/hmo/enrollments', data),
     update: (id, data) => apiClient.put(`/hmo/enrollments/${id}`, data),
     delete: (id) => apiClient.delete(`/hmo/enrollments/${id}`),

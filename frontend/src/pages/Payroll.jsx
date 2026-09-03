@@ -94,6 +94,7 @@ export const Payroll = () => {
   };
 
   const getEmployeeName = (id) => {
+    if (id && typeof id === 'object') return id.name || 'N/A';
     const emp = employees.find(e => e._id === id);
     return emp?.name || 'N/A';
   };
