@@ -1,0 +1,43 @@
+.audit-page .page-header p {
+  margin-top: 6px;
+}
+
+.audit-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.audit-filters button {
+  padding: 8px 13px;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.audit-filters button.active,
+.audit-filters button:hover {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: white;
+}
+
+.audit-level {
+  display: inline-block;
+  min-width: 48px;
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.audit-level.info { background: #e3f0fb; color: #1d5d8e; }
+.audit-level.warn { background: #fff3d6; color: #8a5a00; }
+.audit-level.error { background: #fbe5e7; color: #a51921; }

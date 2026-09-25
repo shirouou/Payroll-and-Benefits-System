@@ -18,6 +18,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const securityHeaders = require('./middleware/securityHeaders');
 const sanitizeInput = require('./middleware/sanitization');
 const { generalLimiter } = require('./middleware/rateLimiting');
+const { copilotLimiter } = require('./middleware/rateLimiting');
 
 // Import routes
 const employeesRouter = require('./routes/employees');
@@ -25,6 +26,8 @@ const payrollRouter = require('./routes/payroll');
 const hmoRouter = require('./routes/hmo');
 const claimsRouter = require('./routes/claims');
 const bonusesRouter = require('./routes/bonuses');
+const auditRouter = require('./routes/audit');
+const copilotRouter = require('./routes/copilot');
 const authRouter = require('./routes/auth');
 const { protect, authorize } = require('./middleware/auth');
 
@@ -62,9 +65,6 @@ app.use(sanitizeInput);
 // 6. Rate limiting
 app.use(generalLimiter);
 
-// Connect to database
-connectDB();
-
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');
@@ -100,10 +100,12 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/employees', protect, authorize('admin', 'hr'), employeesRouter);
-app.use('/api/payroll', protect, authorize('admin', 'hr', 'payroll'), payrollRouter);
+app.use('/api/payroll', protect, authorize('admin', 'hr', 'payroll', 'employee'), payrollRouter);
 app.use('/api/hmo', protect, authorize('admin', 'hr'), hmoRouter);
-app.use('/api/claims', protect, authorize('admin', 'hr', 'payroll'), claimsRouter);
+app.use('/api/claims', protect, authorize('admin', 'hr', 'payroll', 'employee'), claimsRouter);
 app.use('/api/bonuses', protect, authorize('admin', 'hr'), bonusesRouter);
+app.use('/api/audit', protect, authorize('admin'), auditRouter);
+app.use('/api/copilot', copilotLimiter, protect, authorize('admin', 'hr', 'payroll', 'employee'), copilotRouter);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -116,18 +118,20 @@ app.use('*', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📝 Payroll & Benefits System Backend`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Start the network listener only when launched directly. Tests import the app.
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  connectDB();
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📝 Payroll & Benefits System Backend`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.log(`Error: ${err.message}`);
-  server.close(() => process.exit(1));
-});
+  process.on('unhandledRejection', (err) => {
+    console.log(`Error: ${err.message}`);
+    server.close(() => process.exit(1));
+  });
+}
 
 module.exports = app;

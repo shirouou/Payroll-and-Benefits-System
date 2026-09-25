@@ -26,8 +26,12 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'hr', 'payroll', 'viewer'],
-      default: 'viewer',
+      enum: ['admin', 'hr', 'payroll', 'employee'],
+      default: 'employee',
+    },
+    employeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Employee',
     },
     active: {
       type: Boolean,
@@ -55,6 +59,23 @@ const userSchema = new mongoose.Schema(
     passwordHistory: [{
       password: String,
       changedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    }],
+    // Copilot conversation history
+    copilotHistory: [{
+      role: {
+        type: String,
+        enum: ['user', 'assistant'],
+        required: true,
+      },
+      text: {
+        type: String,
+        required: true,
+      },
+      source: String,
+      createdAt: {
         type: Date,
         default: Date.now,
       },
@@ -104,6 +125,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     name: this.name,
     email: this.email,
     role: this.role,
+    employeeId: this.employeeId,
     twoFactorEnabled: this.twoFactorEnabled,
   };
 };
@@ -172,9 +194,9 @@ userSchema.methods.incLoginAttempts = function incLoginAttempts() {
   
   // Otherwise we're incrementing
   const updates = { $inc: { loginAttempts: 1 } };
-  
-  // Lock account after 5 attempts for 2 hours
-  const maxAttempts = 5;
+
+  // Hard lockout after 10 attempts for 2 hours (a CAPTCHA challenge is required starting at 5)
+  const maxAttempts = 10;
   const lockTimespan = 2 * 60 * 60 * 1000; // 2 hours
   
   if (this.loginAttempts + 1 >= maxAttempts && !this.isLocked()) {

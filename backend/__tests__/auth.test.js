@@ -7,6 +7,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../server');
 const User = require('../models/User');
+const Employee = require('../models/Employee');
 
 describe('Authentication Routes', () => {
   let testUser;
@@ -38,6 +39,7 @@ describe('Authentication Routes', () => {
   beforeEach(async () => {
     // Clean test user before each test
     await User.deleteMany({ email: 'test@example.com' });
+    await Employee.deleteMany({ email: 'test@example.com' });
   });
 
   describe('POST /api/auth/register', () => {
@@ -57,6 +59,25 @@ describe('Authentication Routes', () => {
       expect(response.body.data.email).toBe('test@example.com');
     });
 
+    it('links a newly registered account to an existing employee record', async () => {
+      const employee = await Employee.create({
+        name: 'Test User',
+        email: 'test@example.com',
+        position: 'Tester',
+        department: 'IT',
+        basicSalary: 25000,
+        dateHired: '2024-01-15',
+      });
+
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({ name: 'Test User', email: 'test@example.com', password: 'TestPass123!' });
+
+      expect(response.status).toBe(201);
+      expect(response.body.accountLinked).toBe(true);
+      expect(String(response.body.data.employeeId)).toBe(String(employee._id));
+    });
+
     it('should reject invalid password', async () => {
       const response = await request(app)
         .post('/api/auth/register')
@@ -74,7 +95,7 @@ describe('Authentication Routes', () => {
       await request(app)
         .post('/api/auth/register')
         .send({
-          name: 'Test User 1',
+          name: 'Test User One',
           email: 'test@example.com',
           password: 'TestPass123!',
         });
@@ -83,7 +104,7 @@ describe('Authentication Routes', () => {
       const response = await request(app)
         .post('/api/auth/register')
         .send({
-          name: 'Test User 2',
+          name: 'Test User Two',
           email: 'test@example.com',
           password: 'TestPass123!',
         });
@@ -100,7 +121,7 @@ describe('Authentication Routes', () => {
         name: 'Test User',
         email: 'test@example.com',
         password: 'TestPass123!',
-        role: 'viewer',
+        role: 'employee',
       });
     });
 
@@ -154,7 +175,7 @@ describe('Authentication Routes', () => {
         name: 'Test User',
         email: 'test@example.com',
         password: 'TestPass123!',
-        role: 'viewer',
+        role: 'employee',
       });
 
       const loginResponse = await request(app)
@@ -194,7 +215,7 @@ describe('Authentication Routes', () => {
         name: 'Test User',
         email: 'test@example.com',
         password: 'TestPass123!',
-        role: 'viewer',
+        role: 'employee',
       });
 
       const loginResponse = await request(app)
@@ -240,7 +261,7 @@ describe('Authentication Routes', () => {
         name: 'Test User',
         email: 'test@example.com',
         password: 'TestPass123!',
-        role: 'viewer',
+        role: 'employee',
       });
     });
 

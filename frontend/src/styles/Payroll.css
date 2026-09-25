@@ -28,3 +28,95 @@
   color: var(--navy);
   border-bottom-color: var(--brass);
 }
+
+.payslip-heading,
+.payslip-employee,
+.payslip-columns,
+.payslip-net {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.payslip-heading {
+  align-items: flex-start;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.payslip-heading strong {
+  display: block;
+  color: var(--navy);
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-size: 20px;
+}
+
+.payslip-heading span,
+.payslip-period span,
+.payslip-employee span,
+.payslip-columns span,
+.payslip-net span {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.payslip-period { text-align: right; }
+.payslip-period strong { font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+
+.payslip-employee {
+  flex-wrap: wrap;
+  padding: 18px 0;
+}
+
+.payslip-employee > div { min-width: 120px; }
+.payslip-employee strong { display: block; margin-top: 4px; font-size: 13px; }
+
+.payslip-columns { gap: 28px; }
+.payslip-columns section { flex: 1; }
+.payslip-columns h3 { margin-bottom: 10px; color: var(--navy); font-size: 13px; }
+.payslip-columns p { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--hairline); }
+.payslip-columns p strong { color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.payslip-columns .payslip-total { margin-top: 8px; border-bottom: 0; font-weight: 700; }
+.payslip-net { align-items: center; margin-top: 20px; padding: 16px; background: var(--teal-bg); }
+.payslip-net strong { color: var(--navy); font-family: 'IBM Plex Mono', monospace; font-size: 20px; }
+.payslip-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+
+.payroll-confirmation p {
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.confirmation-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.confirmation-detail span {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.confirmation-detail strong {
+  color: var(--navy);
+  text-align: right;
+}
+
+.confirmation-warning {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .payslip-modal,
+  .payslip-modal * { visibility: visible; }
+  .payslip-modal { position: absolute; inset: 0; width: 100%; padding: 24px; }
+  .payslip-actions { display: none; }
+}
+
+@media (max-width: 620px) {
+  .payslip-columns { flex-direction: column; gap: 20px; }
+}

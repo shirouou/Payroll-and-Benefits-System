@@ -1,15 +1,20 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Employee = require('../models/Employee');
 const { AppError } = require('../middleware/errorHandler');
 const { protect, getToken } = require('../middleware/auth');
 const { validateLogin, validateRegister, handleValidationErrors } = require('../utils/validators');
 const { logAuthAttempt, logDataAccess } = require('../utils/logger');
 const { loginLimiter, registerLimiter, resetLimiter } = require('../middleware/rateLimiting');
+const { verifyCaptchaToken } = require('../utils/captcha');
 const emailService = require('../utils/emailService');
 const crypto = require('crypto');
 
 const router = express.Router();
+
+// Number of failed login attempts before a CAPTCHA challenge is required
+const CAPTCHA_ATTEMPT_THRESHOLD = 5;
 
 const signToken = (user) => jwt.sign(
   { id: user._id, role: user.role },
@@ -338,7 +343,7 @@ const generateRefreshToken = (user) => jwt.sign(
  */
 router.post('/login', loginLimiter, validateLogin, handleValidationErrors, async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, captchaToken } = req.body;
 
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
@@ -352,12 +357,25 @@ router.post('/login', loginLimiter, validateLogin, handleValidationErrors, async
       throw new AppError('Account is locked. Please try again after 2 hours.', 401);
     }
 
+    // After repeated failed attempts, require a solved CAPTCHA before checking the password
+    if (user.loginAttempts >= CAPTCHA_ATTEMPT_THRESHOLD) {
+      const captchaIsValid = await verifyCaptchaToken(captchaToken);
+      if (!captchaIsValid) {
+        logAuthAttempt(email, false, req.ip, req.headers['user-agent']);
+        const captchaError = new AppError('Too many failed attempts. Please solve the CAPTCHA to continue.', 403);
+        captchaError.requiresCaptcha = true;
+        throw captchaError;
+      }
+    }
+
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       await user.incLoginAttempts();
       logAuthAttempt(email, false, req.ip, req.headers['user-agent']);
-      throw new AppError('Invalid email or password', 401);
+      const invalidError = new AppError('Invalid email or password', 401);
+      invalidError.requiresCaptcha = (user.loginAttempts + 1) >= CAPTCHA_ATTEMPT_THRESHOLD;
+      throw invalidError;
     }
 
     if (!user.active) {
@@ -382,7 +400,7 @@ router.post('/login', loginLimiter, validateLogin, handleValidationErrors, async
         tempToken: jwt.sign(
           { id: user._id, type: 'temp', twoFactorRequired: true },
           process.env.JWT_SECRET,
-          { expiresIn: '5m' }
+          { expiresIn: '2m' }
         ),
       });
     }
@@ -408,11 +426,14 @@ router.post('/register', registerLimiter, validateRegister, handleValidationErro
   try {
     const { name, email, password } = req.body;
 
+    const normalizedEmail = email.toLowerCase().trim();
+    const employee = await Employee.findOne({ email: normalizedEmail });
     const user = await User.create({
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       password,
-      role: 'viewer',
+      role: 'employee',
+      ...(employee && { employeeId: employee._id }),
     });
 
     logAuthAttempt(email, true, req.ip, req.headers['user-agent']);
@@ -420,6 +441,7 @@ router.post('/register', registerLimiter, validateRegister, handleValidationErro
 
     res.status(201).json({
       success: true,
+      accountLinked: Boolean(employee),
       token: signToken(user),
       refreshToken: generateRefreshToken(user),
       data: user.toSafeObject(),

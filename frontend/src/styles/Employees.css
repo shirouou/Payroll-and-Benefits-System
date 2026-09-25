@@ -1,6 +1,40 @@
 .employees-page {
 }
 
+.report-description {
+  margin-bottom: 16px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrap input {
+  padding-right: 64px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.password-toggle:hover {
+  color: var(--rust);
+}
+
 .form-group {
   margin-bottom: 16px;
 }

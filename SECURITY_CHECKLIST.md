@@ -34,7 +34,7 @@
 
 #### 4. Authorization & Access Control (✅ IMPLEMENTED)
 - [x] Role-Based Access Control (RBAC)
-- [x] 4 roles: admin, hr, payroll, viewer
+- [x] 4 roles: admin, hr, payroll, employee
 - [x] Protected routes per role
 - [x] Automatic role enforcement
 

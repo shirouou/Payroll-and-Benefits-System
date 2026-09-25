@@ -1,0 +1,15 @@
+services:
+  mongodb:
+    container_name: payroll-demo-mongo
+    ports: !override
+      - "27018:27017"
+
+  backend:
+    container_name: payroll-demo-backend
+    ports: !override
+      - "5001:5000"
+
+  frontend:
+    container_name: payroll-demo-frontend
+    ports: !override
+      - "8080:80"

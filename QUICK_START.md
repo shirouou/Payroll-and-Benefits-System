@@ -9,7 +9,7 @@ You now have a **production-ready secure payroll system** with 12 major security
 1. **JWT Authentication** - Secure token-based login
 2. **Two-Factor Authentication (2FA)** - Google Authenticator/Microsoft Authenticator support
 3. **Strong Password Policy** - 8+ chars, uppercase, lowercase, numbers, special chars
-4. **Role-Based Access Control** - admin, hr, payroll, viewer roles
+4. **Role-Based Access Control** - admin, hr, payroll, employee roles
 5. **Data Encryption** - AES encryption for sensitive fields
 6. **Input Validation & Sanitization** - Prevents SQL/NoSQL injection and XSS
 7. **Rate Limiting** - Prevents brute force attacks
@@ -51,6 +51,16 @@ FRONTEND_URL=http://localhost:5173
 ```bash
 npm install
 ```
+
+### Optional: Seed Demo Data
+The seed command replaces demo data in the selected database, including users, employees, payroll, HMO, bonus, and claim records. Use it only when you want a clean demonstration dataset:
+
+```bash
+cd backend
+npm run seed
+```
+
+The seeded employee accounts use the `@oxfordsuitesmakati.com` domain. The demo admin login remains `admin@example.com` / `ChangeMe123!` unless you set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`.
 
 ### Step 4: Start Server
 ```bash

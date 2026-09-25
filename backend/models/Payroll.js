@@ -15,6 +15,54 @@ const payrollSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    workingDays: {
+      type: Number,
+      default: 22,
+      min: 1,
+    },
+    daysWorked: {
+      type: Number,
+      default: 22,
+      min: 0,
+    },
+    daysOff: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    paidLeave: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    unpaidLeave: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    holidayDays: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    overtimeHours: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    overtimeRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    overtimePay: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    proratedBasicSalary: {
+      type: Number,
+    },
     allowance: {
       type: Number,
       default: 0,

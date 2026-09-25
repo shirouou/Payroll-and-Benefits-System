@@ -15,7 +15,7 @@ const protect = async (req, res, next) => {
     if (!token) return next(new AppError('Authentication required', 401));
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).populate('employeeId');
     if (!user || !user.active) {
       logSuspiciousActivity(decoded.id, 'Attempted access with inactive user', req.ip);
       return next(new AppError('User is not active', 401));

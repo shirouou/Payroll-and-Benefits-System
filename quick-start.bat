@@ -3,7 +3,7 @@ REM Quick Start Script for Payroll & Benefits System
 
 echo.
 echo ========================================
-echo Casa Marbella - Payroll & Benefits System
+echo Oxford Suites Makati - Payroll & Benefits System
 echo Quick Start Setup
 echo ========================================
 echo.

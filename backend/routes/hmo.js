@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const HMOPlan = require('../models/HMOPlan');
 const HMOEnrollment = require('../models/HMOEnrollment');
+const Claim = require('../models/Claim');
 const { AppError } = require('../middleware/errorHandler');
 
 // ============ HMO PLANS ============
@@ -56,6 +57,11 @@ router.put('/plans/:id', async (req, res) => {
 // DELETE HMO plan
 router.delete('/plans/:id', async (req, res) => {
   try {
+    const enrollmentCount = await HMOEnrollment.countDocuments({ planId: req.params.id });
+    if (enrollmentCount) {
+      throw new AppError('HMO plan cannot be deleted because employees are enrolled in it. Mark the plan Inactive instead.', 409);
+    }
+
     const plan = await HMOPlan.findByIdAndDelete(req.params.id);
     if (!plan) {
       throw new AppError('HMO plan not found', 404);
@@ -66,6 +72,7 @@ router.delete('/plans/:id', async (req, res) => {
       message: 'HMO plan deleted successfully',
     });
   } catch (error) {
+    if (error instanceof AppError) throw error;
     throw new AppError(error.message, 400);
   }
 });
@@ -141,6 +148,11 @@ router.put('/enrollments/:id', async (req, res) => {
 // DELETE enrollment
 router.delete('/enrollments/:id', async (req, res) => {
   try {
+    const claimCount = await Claim.countDocuments({ enrollmentId: req.params.id });
+    if (claimCount) {
+      throw new AppError('Enrollment cannot be deleted because claims are linked to it. Mark the enrollment Inactive instead.', 409);
+    }
+
     const enrollment = await HMOEnrollment.findByIdAndDelete(req.params.id);
     if (!enrollment) {
       throw new AppError('Enrollment not found', 404);
@@ -151,6 +163,7 @@ router.delete('/enrollments/:id', async (req, res) => {
       message: 'Enrollment deleted successfully',
     });
   } catch (error) {
+    if (error instanceof AppError) throw error;
     throw new AppError(error.message, 400);
   }
 });

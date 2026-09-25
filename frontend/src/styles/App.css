@@ -4,94 +4,184 @@
 }
 
 .sidebar {
-  width: 250px;
+  width: 270px;
   flex-shrink: 0;
-  background: var(--navy);
+  background: #fffdfd;
+  border-right: 1px solid #eadfe1;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  transition: width 0.2s ease;
+}
+
+.sidebar-collapsed .sidebar {
+  width: 78px;
+}
+
+.sidebar-collapsed .brand {
+  padding: 22px 12px;
+  text-align: center;
+}
+
+.sidebar-collapsed .brand-mark span,
+.sidebar-collapsed .brand-sub,
+.sidebar-collapsed .nav-group-label,
+.sidebar-collapsed .nav-item > span:last-child,
+.sidebar-collapsed .profile-copy {
+  display: none;
+}
+
+.sidebar-collapsed .brand-mark::after {
+  content: 'OS';
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-size: 18px;
+  color: #fff;
+}
+
+.sidebar-collapsed .nav {
+  padding: 23px 10px;
+}
+
+.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 7px;
+  border-left: 0;
+}
+
+.sidebar-collapsed .sidebar-footer {
+  padding: 16px 10px 20px;
+}
+
+.sidebar-collapsed .profile-card {
+  justify-content: center;
+  padding: 8px 0;
 }
 
 .brand {
-  padding: 24px 22px 18px;
-  border-bottom: 1px solid rgba(217, 195, 158, 0.18);
+  padding: 26px 26px 22px;
+  border-bottom: 1px solid #eee3e4;
 }
 
 .brand-mark {
   font-family: 'Bodoni Moda', Georgia, serif;
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--brass-light);
-  letter-spacing: 0.11em;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--navy);
+  letter-spacing: 0.09em;
   text-transform: uppercase;
+  line-height: 1.05;
+}
+
+.brand-mark span {
+  display: block;
+}
+
+.brand-mark span + span {
+  margin-top: 5px;
+  font-size: 0.76em;
+  letter-spacing: 0.2em;
 }
 
 .brand-sub {
   font-size: 11px;
-  color: #8CA0B4;
-  margin-top: 3px;
-  letter-spacing: 0.06em;
+  color: #9a858b;
+  margin-top: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 23px 13px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 22px;
+}
+
+.nav-group { display: grid; gap: 5px; }
+
+.nav-group-label {
+  padding: 0 15px 7px;
+  color: #8d9aaa;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-  border-radius: 5px;
-  color: #B7C4D2;
-  font-size: 13.5px;
-  font-weight: 500;
+  gap: 13px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  color: #37465d;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: background 0.12s ease, color 0.12s ease;
+  border-left: 3px solid transparent;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   text-decoration: none;
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #EDEFEE;
+  background: #fff3f4;
+  color: var(--navy);
 }
 
 .nav-item.active {
-  background: rgba(176, 141, 87, 0.16);
-  color: #F3E9D8;
-  border-left: 2px solid var(--brass);
+  background: #fbe7e9;
+  color: var(--navy);
+  border-left-color: var(--navy);
 }
 
 .nav-icon {
-  font-size: 16px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid #e9e1e2;
+  border-radius: 11px;
+  background: #fff;
+  color: #49617e;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nav-item.active .nav-icon {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: white;
 }
 
 .sidebar-footer {
-  padding: 16px 22px 20px;
-  border-top: 1px solid rgba(217, 195, 158, 0.14);
+  padding: 16px 18px 20px;
+  border-top: 1px solid #eee3e4;
   font-size: 11.5px;
-  color: #7488A0;
+  color: #806c70;
   line-height: 1.5;
 }
 
+.profile-card { display: flex; align-items: center; gap: 10px; padding: 8px; }
+.profile-avatar { display: grid; width: 35px; height: 35px; place-items: center; border-radius: 50%; background: #f6dfe2; color: var(--navy); font-weight: 800; }
+.profile-copy { min-width: 0; flex: 1; }
+.profile-copy strong, .profile-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-copy strong { color: #3e3437; font-size: 12px; }
+.profile-copy span { color: #a2777d; font-size: 11px; text-transform: capitalize; }
+
 .logout-button {
-  margin: 8px 0 12px;
-  padding: 5px 0;
+  margin: 0;
+  padding: 6px;
   border: 0;
   background: transparent;
-  color: #F3E9D8;
+  color: #a2777d;
   cursor: pointer;
   font: inherit;
-  font-size: 11.5px;
+  font-size: 18px;
 }
 
 .main {
@@ -100,10 +190,45 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  position: relative;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 24px;
+  left: -16px;
+  z-index: 2;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--navy);
+  cursor: pointer;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--shadow);
+}
+
+.sidebar-toggle:hover {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: var(--ink);
+}
+
+.sidebar-toggle::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 50%;
 }
 
 .content {
-  padding: 28px 36px 60px;
+  padding: 34px 38px 60px;
   flex: 1;
 }
 
@@ -144,4 +269,38 @@
   font-size: 13px;
   background: white;
   cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 78px;
+  }
+
+  .sidebar .brand {
+    padding: 22px 12px;
+    text-align: center;
+  }
+
+  .sidebar .brand-mark span,
+  .sidebar .brand-sub,
+  .sidebar .nav-group-label,
+  .sidebar .nav-item > span:last-child,
+  .sidebar .profile-copy {
+    display: none;
+  }
+
+  .sidebar .brand-mark::after {
+    content: 'OS';
+    font-family: 'Bodoni Moda', Georgia, serif;
+    font-size: 18px;
+    color: var(--navy);
+  }
+
+  .sidebar .nav { padding: 23px 10px; }
+  .sidebar .nav-item { justify-content: center; padding: 7px; border-left: 0; }
+  .sidebar .sidebar-footer { padding: 16px 10px 20px; }
+  .sidebar .profile-card { justify-content: center; padding: 8px 0; }
+
+  .sidebar-toggle { left: -16px; }
+  .content { padding: 28px 20px 48px; }
 }

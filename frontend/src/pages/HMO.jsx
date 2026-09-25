@@ -5,9 +5,12 @@ import Card from '../components/Card';
 import Table from '../components/Table';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import { useToast } from '../context/ToastContext';
 import '../styles/HMO.css';
 
 export const HMO = () => {
+  const toast = useToast();
   const [tabs, setTabs] = useState('plans');
   const [plans, setPlans] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
@@ -17,6 +20,8 @@ export const HMO = () => {
   const [modalType, setModalType] = useState('plan'); // 'plan' or 'enrollment'
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -35,6 +40,7 @@ export const HMO = () => {
       setEmployees(empRes.data);
     } catch (error) {
       console.error('Failed to load data:', error);
+      toast.error(error.response?.data?.message || 'HMO data could not be loaded. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -60,9 +66,10 @@ export const HMO = () => {
       setShowModal(false);
       resetForm();
       loadData();
+      toast.success(editingId ? 'HMO plan updated successfully' : 'HMO plan created successfully');
     } catch (error) {
       console.error('Failed to save plan:', error);
-      alert('Error saving plan');
+      toast.error(error.response?.data?.message || 'Error saving plan');
     }
   };
 
@@ -77,25 +84,42 @@ export const HMO = () => {
       setShowModal(false);
       resetForm();
       loadData();
+      toast.success(editingId ? 'Enrollment updated successfully' : 'Employee enrolled successfully');
     } catch (error) {
       console.error('Failed to save enrollment:', error);
-      alert('Error saving enrollment');
+      toast.error(error.response?.data?.message || 'Error saving enrollment');
     }
   };
 
   const handleDelete = async (id, type) => {
-    if (window.confirm('Are you sure?')) {
-      try {
-        if (type === 'plan') {
-          await hmoAPI.plans.delete(id);
-        } else {
-          await hmoAPI.enrollments.delete(id);
-        }
-        loadData();
-      } catch (error) {
-        console.error('Failed to delete:', error);
-        alert('Error deleting');
+    const record = type === 'plan'
+      ? plans.find(plan => plan._id === id)
+      : enrollments.find(enrollment => enrollment._id === id);
+    setDeleteItem({
+      id,
+      type: type === 'plan' ? 'HMO plan' : 'enrollment',
+      name: type === 'plan' ? record?.name : `${getEmployeeName(record?.employeeId)} enrollment`,
+      reason: type === 'plan' ? 'the plan is obsolete or was created for testing' : 'the enrollment is no longer active or was created for testing',
+      deleteType: type,
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setDeleteLoading(true);
+      if (deleteItem.deleteType === 'plan') {
+        await hmoAPI.plans.delete(deleteItem.id);
+      } else {
+        await hmoAPI.enrollments.delete(deleteItem.id);
       }
+      setDeleteItem(null);
+      await loadData();
+      toast.success(`${deleteItem.deleteType === 'plan' ? 'HMO plan' : 'Enrollment'} deleted successfully`);
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      toast.error(error.response?.data?.message || 'The item was not deleted. Please try again.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -352,6 +376,13 @@ export const HMO = () => {
           </form>
         )}
       </Modal>
+
+      <DeleteConfirmationModal
+        item={deleteItem}
+        onClose={() => setDeleteItem(null)}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 };

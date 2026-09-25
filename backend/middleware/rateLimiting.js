@@ -12,7 +12,7 @@ const generalLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test', // Skip rate limiting in test mode
+  skip: (req) => process.env.NODE_ENV !== 'production', // Disable limits for local development and tests
 });
 
 // Login rate limiter - stricter limit for login endpoint
@@ -23,7 +23,7 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Skip on successful login
-  skip: (req) => process.env.NODE_ENV === 'test',
+  skip: (req) => process.env.NODE_ENV !== 'production',
 });
 
 // Registration rate limiter
@@ -33,7 +33,7 @@ const registerLimiter = rateLimit({
   message: 'Too many registration attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test',
+  skip: (req) => process.env.NODE_ENV !== 'production',
 });
 
 // Password reset rate limiter
@@ -43,7 +43,17 @@ const resetLimiter = rateLimit({
   message: 'Too many password reset attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test',
+  skip: (req) => process.env.NODE_ENV !== 'production',
+});
+
+// Copilot limiter - protects NLP queries from excessive usage
+const copilotLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many Copilot requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV !== 'production',
 });
 
 module.exports = {
@@ -51,4 +61,5 @@ module.exports = {
   loginLimiter,
   registerLimiter,
   resetLimiter,
+  copilotLimiter,
 };

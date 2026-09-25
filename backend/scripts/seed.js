@@ -32,7 +32,7 @@ async function seedDatabase() {
   const employees = await Employee.insertMany([
     {
       name: 'Maria Santos',
-      email: 'maria.santos@casamarbella.com',
+      email: 'maria.santos@oxfordsuitesmakati.com',
       position: 'HR Manager',
       department: 'Human Resources',
       basicSalary: 45000,
@@ -50,7 +50,7 @@ async function seedDatabase() {
     },
     {
       name: 'John Dela Cruz',
-      email: 'john.delacruz@casamarbella.com',
+      email: 'john.delacruz@oxfordsuitesmakati.com',
       position: 'Senior Accountant',
       department: 'Finance',
       basicSalary: 42000,
@@ -68,7 +68,7 @@ async function seedDatabase() {
     },
     {
       name: 'Anna Reyes',
-      email: 'anna.reyes@casamarbella.com',
+      email: 'anna.reyes@oxfordsuitesmakati.com',
       position: 'Operations Supervisor',
       department: 'Operations',
       basicSalary: 38000,
@@ -194,7 +194,7 @@ async function seedDatabase() {
       employeeId: employees[0]._id,
       claimDate: new Date('2026-08-01'),
       serviceDate: new Date('2026-07-25'),
-      provider: 'Casa Marbella Medical Center',
+      provider: 'Oxford Suites Makati Medical Center',
       description: 'Consultation and diagnostic services',
       claimAmount: 8500,
       approvedAmount: 7200,

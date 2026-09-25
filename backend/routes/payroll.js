@@ -14,7 +14,11 @@ const {
 // GET all payroll records
 router.get('/', async (req, res) => {
   try {
-    const payroll = await Payroll.find()
+    if (req.user.role === 'employee' && !req.user.employeeId) {
+      throw new AppError('Employee account is not linked to an employee record', 403);
+    }
+    const filter = req.user.role === 'employee' ? { employeeId: req.user.employeeId } : {};
+    const payroll = await Payroll.find(filter)
       .populate('employeeId')
       .sort({ dateProcessed: -1 });
     res.json({
@@ -29,7 +33,12 @@ router.get('/', async (req, res) => {
 // GET payroll by period
 router.get('/period/:period', async (req, res) => {
   try {
-    const payroll = await Payroll.find({ paymentPeriod: req.params.period })
+    if (req.user.role === 'employee' && !req.user.employeeId) {
+      throw new AppError('Employee account is not linked to an employee record', 403);
+    }
+    const filter = { paymentPeriod: req.params.period };
+    if (req.user.role === 'employee') filter.employeeId = req.user.employeeId;
+    const payroll = await Payroll.find(filter)
       .populate('employeeId');
     res.json({
       success: true,
@@ -47,6 +56,9 @@ router.get('/:id', async (req, res) => {
     if (!payroll) {
       throw new AppError('Payroll record not found', 404);
     }
+    if (req.user.role === 'employee' && String(payroll.employeeId?._id || payroll.employeeId) !== String(req.user.employeeId)) {
+      throw new AppError('You do not have permission to view this payslip', 403);
+    }
     res.json({
       success: true,
       data: payroll,
@@ -59,19 +71,27 @@ router.get('/:id', async (req, res) => {
 // CREATE payroll record
 router.post('/', async (req, res) => {
   try {
-    const { employeeId, paymentPeriod, basicSalary, allowance, overtime, bonusAmount, deductions } = req.body;
+    if (req.user.role === 'employee') throw new AppError('Employees cannot create payroll records', 403);
+    const { employeeId, paymentPeriod, basicSalary, workingDays = 22, daysWorked = 22, daysOff = 0, paidLeave = 0, unpaidLeave = 0, holidayDays = 0, overtimeHours = 0, overtimeRate = 0, overtime, allowance, bonusAmount, deductions } = req.body;
 
     const employee = await Employee.findById(employeeId);
     if (!employee) {
       throw new AppError('Employee not found', 404);
     }
 
-    const grossSalary = basicSalary + (allowance || 0) + (overtime || 0) + (bonusAmount || 0);
+    if (daysWorked < 0 || daysWorked > workingDays) {
+      throw new AppError('Days worked must be between 0 and working days', 400);
+    }
 
-    const sssContribution = calculateSSSContribution(basicSalary);
-    const philhealthContribution = calculatePhilHealthContribution(basicSalary);
-    const pagibigContribution = calculatePagIbigContribution(basicSalary);
-    const withholdingTax = calculateWithholdingTax(grossSalary);
+    const proratedBasicSalary = basicSalary * (daysWorked / workingDays);
+    const overtimePay = overtimeHours > 0 ? overtimeHours * overtimeRate : (overtime || 0);
+    const grossSalary = proratedBasicSalary + (allowance || 0) + overtimePay + (bonusAmount || 0);
+
+    const sssContribution = calculateSSSContribution(proratedBasicSalary);
+    const philhealthContribution = calculatePhilHealthContribution(proratedBasicSalary);
+    const pagibigContribution = calculatePagIbigContribution(proratedBasicSalary);
+    const taxableIncome = Math.max(grossSalary - sssContribution - philhealthContribution - pagibigContribution, 0);
+    const withholdingTax = calculateWithholdingTax(taxableIncome);
 
     const allDeductions = [
       { name: 'SSS', amount: sssContribution },
@@ -87,6 +107,17 @@ router.post('/', async (req, res) => {
       employeeId,
       paymentPeriod,
       basicSalary,
+      workingDays,
+      daysWorked,
+      daysOff,
+      paidLeave,
+      unpaidLeave,
+      holidayDays,
+      overtimeHours,
+      overtimeRate,
+      overtime: overtimePay,
+      overtimePay,
+      proratedBasicSalary,
       allowance,
       overtime,
       bonusAmount,
@@ -112,6 +143,7 @@ router.post('/', async (req, res) => {
 // UPDATE payroll record
 router.put('/:id', async (req, res) => {
   try {
+    if (req.user.role === 'employee') throw new AppError('Employees cannot update payroll records', 403);
     const payroll = await Payroll.findById(req.params.id);
     if (!payroll) {
       throw new AppError('Payroll record not found', 404);
@@ -151,6 +183,7 @@ router.put('/:id', async (req, res) => {
 // DELETE payroll record
 router.delete('/:id', async (req, res) => {
   try {
+    if (req.user.role === 'employee') throw new AppError('Employees cannot delete payroll records', 403);
     const payroll = await Payroll.findByIdAndDelete(req.params.id);
     if (!payroll) {
       throw new AppError('Payroll record not found', 404);
@@ -168,6 +201,7 @@ router.delete('/:id', async (req, res) => {
 // Run payroll for all active employees
 router.post('/run/batch', async (req, res) => {
   try {
+    if (req.user.role === 'employee') throw new AppError('Employees cannot run payroll', 403);
     const { paymentPeriod } = req.body;
     const employees = await Employee.find({ status: 'Active' });
 
@@ -177,7 +211,8 @@ router.post('/run/batch', async (req, res) => {
       const sssContribution = calculateSSSContribution(employee.basicSalary);
       const philhealthContribution = calculatePhilHealthContribution(employee.basicSalary);
       const pagibigContribution = calculatePagIbigContribution(employee.basicSalary);
-      const withholdingTax = calculateWithholdingTax(grossSalary);
+      const taxableIncome = Math.max(grossSalary - sssContribution - philhealthContribution - pagibigContribution, 0);
+      const withholdingTax = calculateWithholdingTax(taxableIncome);
 
       const allDeductions = [
         { name: 'SSS', amount: sssContribution },

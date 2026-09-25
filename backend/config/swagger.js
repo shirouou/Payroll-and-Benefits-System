@@ -40,8 +40,8 @@ const options = {
             email: { type: 'string', format: 'email', example: 'john@example.com' },
             role: { 
               type: 'string', 
-              enum: ['admin', 'hr', 'payroll', 'viewer'],
-              example: 'viewer'
+              enum: ['admin', 'hr', 'payroll', 'employee'],
+              example: 'employee'
             },
             active: { type: 'boolean', example: true },
             twoFactorEnabled: { type: 'boolean', example: false },

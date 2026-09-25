@@ -10,7 +10,7 @@ This document provides a quick reference guide for all security features impleme
 ### 1. **Authentication & Authorization** ✓
 - ✅ JWT (JSON Web Tokens) for secure token-based authentication
 - ✅ Refresh token mechanism for secure session management
-- ✅ Role-Based Access Control (RBAC) with 4 roles: admin, hr, payroll, viewer
+- ✅ Role-Based Access Control (RBAC) with 4 roles: admin, hr, payroll, employee
 - ✅ Protected routes with middleware authorization
 - ✅ Account lockout after 5 failed login attempts (2-hour lockout)
 - ✅ Login attempt tracking and resetting

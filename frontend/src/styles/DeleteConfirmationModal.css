@@ -1,0 +1,16 @@
+.delete-confirmation p {
+  margin: 0 0 14px;
+  line-height: 1.55;
+}
+
+.delete-warning {
+  padding: 12px;
+  border-left: 3px solid var(--rust);
+  background: var(--rust-bg);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.delete-confirmation input {
+  text-transform: uppercase;
+}

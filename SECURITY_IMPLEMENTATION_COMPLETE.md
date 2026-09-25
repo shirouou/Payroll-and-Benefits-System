@@ -15,7 +15,7 @@ All 12 comprehensive security features have been successfully implemented in you
 | 1 | JWT Authentication | ✅ | Secure token-based login |
 | 2 | Two-Factor Authentication (2FA) | ✅ | Google Authenticator + Backup Codes |
 | 3 | Strong Password Policy | ✅ | 8+ chars, uppercase, lowercase, numbers, special chars |
-| 4 | Role-Based Access Control | ✅ | admin, hr, payroll, viewer roles |
+| 4 | Role-Based Access Control | ✅ | admin, hr, payroll, employee roles |
 | 5 | Data Encryption | ✅ | AES encryption for sensitive fields |
 | 6 | Input Validation & Sanitization | ✅ | Prevents injection and XSS attacks |
 | 7 | Rate Limiting & Brute Force Protection | ✅ | 5 login attempts per 15 min, then 2-hour lockout |
@@ -119,7 +119,7 @@ All 12 comprehensive security features have been successfully implemented in you
 - History: Tracks previous passwords
 
 ### Feature 4: Role-Based Access Control ✅
-- 4 Roles: admin, hr, payroll, viewer
+- 4 Roles: admin, hr, payroll, employee
 - Route-level authorization
 - Automatic enforcement via middleware
 - Flexible role combination

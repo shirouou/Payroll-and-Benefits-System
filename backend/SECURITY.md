@@ -13,7 +13,7 @@ This document outlines all the security features implemented in the Payroll and 
   - Token validation on protected routes
 
 ### Role-Based Access Control (RBAC)
-- **Roles**: admin, hr, payroll, viewer
+- **Roles**: admin, hr, payroll, employee
 - **Authorization Middleware**: `authorize()` function in [middleware/auth.js](middleware/auth.js)
 - **Usage**: 
   ```javascript

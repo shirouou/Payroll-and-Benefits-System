@@ -31,9 +31,15 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const readAccessToken = () => {
+  const adminSessionToken = sessionStorage.getItem('payroll_auth_token_session') || sessionStorage.getItem('payroll_auth_token');
+  if (adminSessionToken) return adminSessionToken;
+  return localStorage.getItem('payroll_auth_token');
+};
+
 // Request interceptor - add token to requests
 apiClient.interceptors.request.use(config => {
-  const token = localStorage.getItem('payroll_auth_token');
+  const token = readAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -45,9 +51,10 @@ apiClient.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
+    const isAuthenticationRequest = originalRequest?.url?.includes('/auth/');
 
     // Handle 401 with token refresh
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthenticationRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -62,12 +69,14 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('payroll_refresh_token');
+      const refreshToken = sessionStorage.getItem('payroll_refresh_token') || localStorage.getItem('payroll_refresh_token');
       
       if (!refreshToken) {
         // No refresh token, redirect to login
         localStorage.removeItem('payroll_auth_token');
         localStorage.removeItem('payroll_auth_user');
+        sessionStorage.removeItem('payroll_auth_token');
+        sessionStorage.removeItem('payroll_auth_user');
         window.location.href = '/';
         return Promise.reject(error);
       }
@@ -79,8 +88,16 @@ apiClient.interceptors.response.use(
 
         const { token: newToken, refreshToken: newRefreshToken } = response.data;
         
-        localStorage.setItem('payroll_auth_token', newToken);
-        localStorage.setItem('payroll_refresh_token', newRefreshToken);
+        const adminSession = sessionStorage.getItem('payroll_auth_user_session') || sessionStorage.getItem('payroll_auth_user');
+        const shouldPersistSession = !adminSession || JSON.parse(adminSession)?.role !== 'admin';
+
+        if (shouldPersistSession) {
+          localStorage.setItem('payroll_auth_token', newToken);
+          localStorage.setItem('payroll_refresh_token', newRefreshToken);
+        } else {
+          sessionStorage.setItem('payroll_auth_token', newToken);
+          sessionStorage.setItem('payroll_refresh_token', newRefreshToken);
+        }
 
         apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -94,6 +111,9 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('payroll_auth_token');
         localStorage.removeItem('payroll_auth_user');
         localStorage.removeItem('payroll_refresh_token');
+        sessionStorage.removeItem('payroll_auth_token');
+        sessionStorage.removeItem('payroll_auth_user');
+        sessionStorage.removeItem('payroll_refresh_token');
         window.location.href = '/';
         
         return Promise.reject(refreshError);
@@ -101,10 +121,13 @@ apiClient.interceptors.response.use(
     }
 
     // For other 401 errors (no refresh possible)
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuthenticationRequest) {
       localStorage.removeItem('payroll_auth_token');
       localStorage.removeItem('payroll_auth_user');
       localStorage.removeItem('payroll_refresh_token');
+      sessionStorage.removeItem('payroll_auth_token');
+      sessionStorage.removeItem('payroll_auth_user');
+      sessionStorage.removeItem('payroll_refresh_token');
       window.location.href = '/';
     }
 
@@ -115,6 +138,7 @@ apiClient.interceptors.response.use(
 // ============ EMPLOYEES ============
 export const employeeAPI = {
   getAll: () => apiClient.get('/employees').then(unwrapCollection),
+  exportReport: (data) => apiClient.post('/employees/report/pdf', data, { responseType: 'blob' }),
   getById: (id) => apiClient.get(`/employees/${id}`),
   create: (data) => apiClient.post('/employees', data),
   update: (id, data) => apiClient.put(`/employees/${id}`, data),
@@ -152,18 +176,19 @@ export const hmoAPI = {
 
 // ============ CLAIMS ============
 export const claimsAPI = {
-  getAll: () => apiClient.get('/claims'),
+  getAll: () => apiClient.get('/claims').then(unwrapCollection),
+  getAvailableEnrollments: () => apiClient.get('/claims/enrollments/available').then(unwrapCollection),
   getById: (id) => apiClient.get(`/claims/${id}`),
   create: (data) => apiClient.post('/claims', data),
   update: (id, data) => apiClient.put(`/claims/${id}`, data),
   approve: (id, data) => apiClient.post(`/claims/${id}/approve`, data),
   reject: (id, data) => apiClient.post(`/claims/${id}/reject`, data),
-  getByStatus: (status) => apiClient.get(`/claims/status/${status}`),
+  getByStatus: (status) => apiClient.get(`/claims/status/${status}`).then(unwrapCollection),
 };
 
 // ============ BONUSES ============
 export const bonusesAPI = {
-  getAll: () => apiClient.get('/bonuses'),
+  getAll: () => apiClient.get('/bonuses').then(unwrapCollection),
   getById: (id) => apiClient.get(`/bonuses/${id}`),
   create: (data) => apiClient.post('/bonuses', data),
   update: (id, data) => apiClient.put(`/bonuses/${id}`, data),

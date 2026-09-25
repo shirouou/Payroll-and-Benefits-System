@@ -1,0 +1,33 @@
+.copilot-page .page-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.copilot-page .page-header p { margin-top: 6px; }
+.copilot-page .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.copilot-page .header-actions .btn { background: transparent; }
+.copilot-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr); gap: 18px; }
+.copilot-form { display: grid; gap: 9px; }
+.copilot-form label { color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.copilot-form textarea { width: 100%; padding: 12px; border: 1px solid var(--hairline); border-radius: 7px; font: inherit; resize: vertical; transition: border-color .12s ease, box-shadow .12s ease; }
+.copilot-form textarea:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(28, 47, 82, .12); }
+.copilot-submit { width: 100%; justify-content: center; min-height: 42px; box-shadow: 0 5px 12px rgba(28, 47, 82, .16); }
+.message-list { display: grid; gap: 10px; max-height: 430px; overflow-y: auto; margin-bottom: 18px; padding-right: 6px; scroll-behavior: smooth; }
+.message-bubble { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--paper); }
+.message-bubble.assistant { background: var(--teal-bg); border-color: rgba(17, 117, 94, 0.18); }
+.message-bubble.user { background: #eef3ff; border-color: rgba(72, 102, 255, 0.18); }
+.message-bubble.pending { opacity: 0.7; }
+.message-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+.message-bubble p { margin: 0; line-height: 1.5; color: var(--ink); }
+.suggestion-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.suggestion-list button { padding: 7px 10px; border: 1px solid var(--hairline); border-radius: 5px; background: var(--paper); color: var(--ink-soft); cursor: pointer; font: inherit; font-size: 11px; text-align: left; }
+.suggestion-list button:hover { border-color: var(--navy); color: var(--navy); }
+.copilot-answer { margin-top: 18px; padding: 16px; border-left: 3px solid var(--navy); background: var(--teal-bg); }
+.copilot-answer p { margin-top: 7px; color: var(--ink); line-height: 1.5; }
+.intent-label, .source-label { display: inline-block; color: var(--navy); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; margin-right: 10px; }
+.finding-list { display: grid; gap: 10px; }
+.finding { padding: 12px; border-left: 3px solid; background: var(--paper); }
+.finding strong { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.finding p { margin-top: 5px; color: var(--ink-soft); font-size: 12px; line-height: 1.4; }
+.finding.warning { border-color: #c28b17; background: #fff9e9; }
+.finding.warning strong { color: #8a5a00; }
+.finding.critical { border-color: var(--rust); background: var(--rust-bg); }
+.finding.critical strong { color: var(--rust); }
+.compliance-clear { padding: 20px 0; color: #21713a; font-size: 13px; }
+@media (max-width: 800px) { .copilot-grid { grid-template-columns: 1fr; } }

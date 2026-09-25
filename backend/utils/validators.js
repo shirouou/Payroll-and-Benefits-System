@@ -12,7 +12,7 @@ const { AppError } = require('../middleware/errorHandler');
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const messages = errors.array().map((err) => `${err.param}: ${err.msg}`);
+    const messages = errors.array().map((err) => `${err.path || err.param}: ${err.msg}`);
     return next(new AppError(messages.join(', '), 400));
   }
   next();
@@ -43,6 +43,16 @@ const validatePassword = body('password')
   .withMessage('Password must contain at least one number')
   .matches(/[!@#$%^&*]/)
   .withMessage('Password must contain at least one special character (!@#$%^&*)');
+
+const validatePasswordStrength = password => {
+  const errors = [];
+  if (typeof password !== 'string' || password.length < 8) errors.push('8 characters');
+  if (!/[A-Z]/.test(password)) errors.push('uppercase');
+  if (!/[a-z]/.test(password)) errors.push('lowercase');
+  if (!/[0-9]/.test(password)) errors.push('numbers');
+  if (!/[!@#$%^&*]/.test(password)) errors.push('special');
+  return { valid: errors.length === 0, errors };
+};
 
 /**
  * Name validation
@@ -119,6 +129,7 @@ module.exports = {
   validateRegister,
   validateEmail,
   validatePassword,
+  validatePasswordStrength,
   validateName,
   validateId,
   validateString,

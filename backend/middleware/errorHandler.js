@@ -38,6 +38,7 @@ const errorHandler = (err, req, res, next) => {
   res.status(err.statusCode).json({
     success: false,
     message: err.message,
+    ...(err.requiresCaptcha && { requiresCaptcha: true }),
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
