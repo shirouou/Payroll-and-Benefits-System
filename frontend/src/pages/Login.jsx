@@ -237,10 +237,6 @@ export default function Login() {
           <button type="submit" disabled={loading || (captchaRequired && !captchaToken)}>
             {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
-
-          <button type="button" className="login-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}>
-            {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'}
-          </button>
           </>}
         </form>
       </section>
