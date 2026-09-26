@@ -65,17 +65,25 @@ app.use(sanitizeInput);
 // 6. Rate limiting
 app.use(generalLimiter);
 
+// Health check must run before the production SPA fallback.
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' });
+});
+
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  // SPA fallback: redirect non-API routes to index.html
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-    }
-  });
+  const frontendDist = path.join(__dirname, 'public');
+  app.use(express.static(frontendDist));
+  // Serve the SPA only when this deployment includes its built assets.
+  const fs = require('fs');
+  const frontendIndex = path.join(frontendDist, 'index.html');
+  if (fs.existsSync(frontendIndex)) {
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(frontendIndex);
+    });
+  }
 }
 
 // Swagger API Documentation
@@ -90,11 +98,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
 });
 
 // API Routes
