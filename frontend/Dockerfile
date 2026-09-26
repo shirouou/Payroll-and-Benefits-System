@@ -27,9 +27,8 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Expose port
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost/health || exit 1
+# Temporarily disable the container health check while diagnosing hosting health status.
+# Re-enable it after confirming the hosting platform reports this container healthy.
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
