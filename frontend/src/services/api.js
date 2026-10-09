@@ -179,7 +179,13 @@ export const claimsAPI = {
   getAll: () => apiClient.get('/claims').then(unwrapCollection),
   getAvailableEnrollments: () => apiClient.get('/claims/enrollments/available').then(unwrapCollection),
   getById: (id) => apiClient.get(`/claims/${id}`),
-  create: (data) => apiClient.post('/claims', data),
+  create: (data) => {
+    if (data instanceof FormData) {
+      return apiClient.post('/claims', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return apiClient.post('/claims', data);
+  },
+  getReceipt: (id) => apiClient.get(`/claims/${id}/receipt`, { responseType: 'blob' }),
   update: (id, data) => apiClient.put(`/claims/${id}`, data),
   approve: (id, data) => apiClient.post(`/claims/${id}/approve`, data),
   reject: (id, data) => apiClient.post(`/claims/${id}/reject`, data),

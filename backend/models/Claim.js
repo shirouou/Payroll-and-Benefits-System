@@ -32,6 +32,11 @@ const claimSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    receiptImage: {
+      data: { type: Buffer, select: false },
+      contentType: { type: String, enum: ['image/jpeg', 'image/png', 'image/webp'] },
+      filename: String,
+    },
     approvedAmount: {
       type: Number,
       default: 0,

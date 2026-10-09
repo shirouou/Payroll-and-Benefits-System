@@ -33,6 +33,9 @@ export default function Claims() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
+  const [receiptImage, setReceiptImage] = useState(null);
+  const [submittingClaim, setSubmittingClaim] = useState(false);
+  const [receiptClaim, setReceiptClaim] = useState(null);
   const [approvalClaim, setApprovalClaim] = useState(null);
   const [approvalAmount, setApprovalAmount] = useState('');
   const [approvalError, setApprovalError] = useState('');
@@ -82,14 +85,31 @@ export default function Claims() {
   const handleSubmit = async event => {
     event.preventDefault();
     try {
-      await claimsAPI.create(formData);
+      setSubmittingClaim(true);
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
+      if (receiptImage) payload.append('receiptImage', receiptImage);
+      await claimsAPI.create(payload);
       setShowModal(false);
       setFormData(emptyForm);
+      setReceiptImage(null);
       loadData();
       toast.success('Claim submitted successfully');
     } catch (error) {
       const message = error.response?.data?.message;
       toast.error(Array.isArray(message) ? message.join(', ') : message || 'Error submitting claim');
+    } finally {
+      setSubmittingClaim(false);
+    }
+  };
+
+  const viewReceipt = async claim => {
+    try {
+      const response = await claimsAPI.getReceipt(claim._id);
+      const imageUrl = URL.createObjectURL(response.data);
+      setReceiptClaim({ url: imageUrl, filename: claim.receiptImage?.filename || 'Receipt image' });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Receipt image could not be loaded');
     }
   };
 
@@ -103,6 +123,11 @@ export default function Claims() {
     setApprovalClaim(null);
     setApprovalAmount('');
     setApprovalError('');
+  };
+
+  const closeReceiptModal = () => {
+    if (receiptClaim?.url) URL.revokeObjectURL(receiptClaim.url);
+    setReceiptClaim(null);
   };
 
   const submitApproval = async event => {
@@ -198,6 +223,9 @@ export default function Claims() {
             { key: 'serviceDate', label: 'Service date', render: claim => formatDate(claim.serviceDate) },
             { key: 'claimAmount', label: 'Claim amount', render: claim => formatPeso(claim.claimAmount) },
             { key: 'approvedAmount', label: 'Approved', render: claim => formatPeso(claim.approvedAmount) },
+            { key: 'receiptImage', label: 'Receipt', render: claim => claim.receiptImage?.contentType
+              ? <Button size="sm" variant="ghost" onClick={() => viewReceipt(claim)}>View image</Button>
+              : '—' },
             { key: 'status', label: 'Status', render: claim => <span className={`claim-status ${claim.status.toLowerCase()}`}>{claim.status}</span> },
           ]}
           data={visibleClaims}
@@ -239,11 +267,25 @@ export default function Claims() {
           <div className="form-group"><label>Provider</label><input type="text" name="provider" value={formData.provider} onChange={handleInputChange} required /></div>
           <div className="form-group"><label>Description</label><textarea name="description" value={formData.description} onChange={handleInputChange} rows="3" required /></div>
           <div className="form-group"><label>Claim amount (PHP)</label><input type="number" name="claimAmount" min="0" value={formData.claimAmount} onChange={handleInputChange} required /></div>
+          <div className="form-group">
+            <label htmlFor="claim-receipt">Receipt or supporting image (optional)</label>
+            <input
+              id="claim-receipt"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={event => setReceiptImage(event.target.files?.[0] || null)}
+            />
+            <small className="field-hint">JPEG, PNG, or WebP; maximum 5 MB.</small>
+          </div>
           <div className="form-actions">
             <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Submit Claim</Button>
+            <Button type="submit" variant="primary" loading={submittingClaim}>Submit Claim</Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal title="Claim receipt" isOpen={Boolean(receiptClaim)} onClose={closeReceiptModal}>
+        {receiptClaim && <img className="claim-receipt-preview" src={receiptClaim.url} alt={receiptClaim.filename} />}
       </Modal>
 
       <Modal title="Approve Claim" isOpen={Boolean(approvalClaim)} onClose={closeApprovalModal} size="sm">

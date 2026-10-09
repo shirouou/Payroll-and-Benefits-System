@@ -117,6 +117,36 @@ describe('Claims Routes', () => {
       expect(String(response.body.data.employeeId._id)).toBe(String(employee._id));
     });
 
+    it('accepts an optional receipt image and returns it through the protected receipt route', async () => {
+      const employee = await Employee.create(validEmployeePayload());
+      const enrollment = await createActiveEnrollment(employee._id);
+      const employeeToken = await loginAsEmployee(employee);
+      const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+      const submission = await request(app)
+        .post('/api/claims')
+        .set('Authorization', `Bearer ${employeeToken}`)
+        .field('enrollmentId', String(enrollment._id))
+        .field('claimDate', '2026-09-01')
+        .field('serviceDate', '2026-08-28')
+        .field('provider', 'City General Hospital')
+        .field('description', 'Annual physical exam')
+        .field('claimAmount', '3500')
+        .attach('receiptImage', pngHeader, { filename: 'receipt.png', contentType: 'image/png' });
+
+      expect(submission.status).toBe(201);
+      expect(submission.body.data.receiptImage.contentType).toBe('image/png');
+      expect(submission.body.data.receiptImage.data).toBeUndefined();
+
+      const receipt = await request(app)
+        .get(`/api/claims/${submission.body.data._id}/receipt`)
+        .set('Authorization', `Bearer ${employeeToken}`);
+
+      expect(receipt.status).toBe(200);
+      expect(receipt.headers['content-type']).toContain('image/png');
+      expect(receipt.body).toEqual(pngHeader);
+    });
+
     it('blocks an employee from submitting a claim against another employee\'s enrollment', async () => {
       const employeeA = await Employee.create(validEmployeePayload());
       const employeeB = await Employee.create(validEmployeePayload());

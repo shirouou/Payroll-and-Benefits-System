@@ -3,6 +3,31 @@ const router = express.Router();
 const Claim = require('../models/Claim');
 const HMOEnrollment = require('../models/HMOEnrollment');
 const { AppError } = require('../middleware/errorHandler');
+const multer = require('multer');
+
+const receiptUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (req, file, callback) => {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+      return callback(new AppError('Receipt must be a JPEG, PNG, or WebP image', 400));
+    }
+    callback(null, true);
+  },
+});
+
+const handleReceiptUpload = (req, res, next) => {
+  receiptUpload.single('receiptImage')(req, res, error => {
+    if (error instanceof multer.MulterError) {
+      const isOversized = error.code === 'LIMIT_FILE_SIZE';
+      return next(new AppError(
+        isOversized ? 'Receipt image must be 5 MB or smaller' : 'Upload only one receipt image',
+        isOversized ? 413 : 400
+      ));
+    }
+    next(error);
+  });
+};
 
 // GET all claims
 router.get('/', async (req, res) => {
@@ -54,9 +79,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // CREATE claim
-router.post('/', async (req, res) => {
+router.post('/', handleReceiptUpload, async (req, res) => {
   try {
     const payload = { ...req.body };
+    if (req.file) {
+      payload.receiptImage = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+        filename: req.file.originalname,
+      };
+    }
     if (req.user.role === 'employee') {
       if (!req.user.employeeId) throw new AppError('Employee account is not linked to an employee record', 403);
       payload.employeeId = req.user.employeeId;
@@ -65,13 +97,36 @@ router.post('/', async (req, res) => {
     }
     const claim = await Claim.create(payload);
     await claim.populate(['employeeId', 'enrollmentId']);
+    const responseClaim = claim.toObject();
+    if (responseClaim.receiptImage) delete responseClaim.receiptImage.data;
     res.status(201).json({
       success: true,
-      data: claim,
+      data: responseClaim,
       message: 'Claim created successfully',
     });
   } catch (error) {
     throw new AppError(error.message, 400);
+  }
+});
+
+// Retrieve the optional image attached to a claim (employees may view their own).
+router.get('/:id/receipt', async (req, res, next) => {
+  try {
+    const claim = await Claim.findById(req.params.id).select('+receiptImage.data');
+    if (!claim) throw new AppError('Claim not found', 404);
+    const claimEmployeeId = claim.employeeId?._id || claim.employeeId;
+    const userEmployeeId = req.user.employeeId?._id || req.user.employeeId;
+    if (req.user.role === 'employee' && String(claimEmployeeId) !== String(userEmployeeId)) {
+      throw new AppError('You do not have permission to view this receipt', 403);
+    }
+    if (!claim.receiptImage?.data) throw new AppError('No receipt image is attached', 404);
+
+    res.set('Content-Type', claim.receiptImage.contentType);
+    res.set('Content-Disposition', 'inline');
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.send(claim.receiptImage.data);
+  } catch (error) {
+    next(error);
   }
 });
 

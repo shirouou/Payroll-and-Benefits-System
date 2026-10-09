@@ -209,8 +209,6 @@ export const Payroll = () => {
             <div className="action-buttons">
               <Button size="sm" variant="ghost" onClick={() => setSelectedPayroll(row)}>View Payslip</Button>
               {row.status === 'Draft' && <Button size="sm" variant="primary" onClick={() => updateStatus(row, 'Approved')}>Approve</Button>}
-              {row.status === 'Approved' && <Button size="sm" variant="brass" onClick={() => updateStatus(row, 'Paid')}>Mark Paid</Button>}
-              {row.status !== 'Paid' && row.status !== 'Voided' && <Button size="sm" variant="danger" onClick={() => updateStatus(row, 'Voided')}>Void</Button>}
             </div>
           )}
         />
