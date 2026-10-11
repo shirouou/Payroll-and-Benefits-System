@@ -29,7 +29,9 @@ const bonusesRouter = require('./routes/bonuses');
 const auditRouter = require('./routes/audit');
 const copilotRouter = require('./routes/copilot');
 const authRouter = require('./routes/auth');
+const profileRouter = require('./routes/profile');
 const { protect, authorize } = require('./middleware/auth');
+const { broadcastChanges, eventStream } = require('./utils/liveUpdates');
 
 // Initialize Express app
 const app = express();
@@ -101,7 +103,10 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 // API Routes
+app.get('/api/events', protect, eventStream);
+app.use('/api', broadcastChanges);
 app.use('/api/auth', authRouter);
+app.use('/api/profile', protect, profileRouter);
 app.use('/api/employees', protect, authorize('admin', 'hr'), employeesRouter);
 app.use('/api/payroll', protect, authorize('admin', 'hr', 'payroll', 'employee'), payrollRouter);
 app.use('/api/hmo', protect, authorize('admin', 'hr'), hmoRouter);

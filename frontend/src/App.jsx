@@ -9,6 +9,8 @@ import Bonuses from './pages/Bonuses';
 import AuditLog from './pages/AuditLog';
 import Copilot from './pages/Copilot';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
+import Avatar from './components/Avatar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ToastContainer } from './components/Toast';
@@ -100,11 +102,13 @@ function AppContent() {
 
         <div className="sidebar-footer">
           <div className="profile-card">
-            <div className="profile-avatar">{user.name?.charAt(0) || 'A'}</div>
-            <div className="profile-copy">
-              <strong>{user.name}</strong>
-              <span>{user.role}</span>
-            </div>
+            <Link to="/profile" className={`profile-link ${location.pathname === '/profile' ? 'active' : ''}`} title="Edit profile">
+              <Avatar user={user} />
+              <div className="profile-copy">
+                <strong>{user.name}</strong>
+                <span>{user.role}</span>
+              </div>
+            </Link>
             <button type="button" className="logout-button" onClick={() => setShowLogoutModal(true)} aria-label="Sign out" title="Sign out">↪</button>
           </div>
         </div>
@@ -133,6 +137,7 @@ function AppContent() {
         <div className="content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin', 'hr']}><Employees /></ProtectedRoute>} />
             <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'hr', 'payroll']}><Payroll /></ProtectedRoute>} />
             <Route path="/hmo" element={<ProtectedRoute allowedRoles={['admin', 'hr']}><HMO /></ProtectedRoute>} />

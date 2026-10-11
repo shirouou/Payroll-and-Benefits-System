@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    avatar: {
+      data: { type: Buffer, select: false },
+      contentType: String,
+      updatedAt: Date,
+    },
     // Two-Factor Authentication
     twoFactorEnabled: {
       type: Boolean,
@@ -127,6 +132,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     role: this.role,
     employeeId: this.employeeId,
     twoFactorEnabled: this.twoFactorEnabled,
+    avatarUpdatedAt: this.avatar?.updatedAt || null,
   };
 };
 

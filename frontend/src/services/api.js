@@ -192,6 +192,18 @@ export const claimsAPI = {
   getByStatus: (status) => apiClient.get(`/claims/status/${status}`).then(unwrapCollection),
 };
 
+// ============ PROFILE ============
+export const profileAPI = {
+  updateName: (name) => apiClient.put('/profile', { name }),
+  uploadAvatar: (file) => {
+    const body = new FormData();
+    body.append('avatar', file);
+    return apiClient.put('/profile/avatar', body, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  removeAvatar: () => apiClient.delete('/profile/avatar'),
+  getAvatar: () => apiClient.get('/profile/avatar', { responseType: 'blob' }),
+};
+
 // ============ BONUSES ============
 export const bonusesAPI = {
   getAll: () => apiClient.get('/bonuses').then(unwrapCollection),

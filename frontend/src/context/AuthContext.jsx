@@ -82,6 +82,15 @@ export function AuthProvider({ children }) {
     setUser(nextUser);
   };
 
+  const updateUser = changes => {
+    setUser(previous => {
+      const nextUser = { ...previous, ...changes };
+      const key = nextUser.role === 'admin' ? SESSION_USER_KEY : USER_KEY;
+      getStorageForRole(nextUser.role).setItem(key, JSON.stringify(nextUser));
+      return nextUser;
+    });
+  };
+
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -94,7 +103,7 @@ export function AuthProvider({ children }) {
   const hasRole = (...allowedRoles) => !!user && allowedRoles.includes(user.role);
 
   const value = useMemo(
-    () => ({ token, user, login, verifyTwoFactorLogin, register, logout, hasRole }),
+    () => ({ token, user, login, verifyTwoFactorLogin, register, logout, hasRole, updateUser }),
     [token, user]
   );
 
