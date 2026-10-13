@@ -233,6 +233,9 @@ export default function Login() {
               <div ref={captchaContainerRef} />
             </div>
           )}
+          {captchaRequired && !recaptchaSiteKey && (
+            <div className="login-error" role="alert">CAPTCHA is not configured on this site. Please contact the administrator.</div>
+          )}
 
           <button type="submit" disabled={loading || (captchaRequired && !captchaToken)}>
             {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}

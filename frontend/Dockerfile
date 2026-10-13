@@ -13,6 +13,10 @@ RUN npm ci
 COPY . .
 
 # Build the application
+ARG VITE_API_URL=/api
+ARG VITE_RECAPTCHA_SITE_KEY
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_RECAPTCHA_SITE_KEY=$VITE_RECAPTCHA_SITE_KEY
 RUN npm run build
 
 # Serve with Nginx
