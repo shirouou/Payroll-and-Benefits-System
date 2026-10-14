@@ -68,6 +68,78 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Recalculate eligible records for the selected period with a new day schedule.
+router.post('/period/:period/set-days', async (req, res) => {
+  try {
+    if (!['admin', 'hr', 'payroll'].includes(req.user.role)) {
+      throw new AppError('You do not have permission to adjust payroll days', 403);
+    }
+
+    const workingDays = Number(req.body.workingDays);
+    const daysWorked = Number(req.body.daysWorked);
+    if (!Number.isInteger(workingDays) || workingDays < 1 || workingDays > 31
+      || !Number.isInteger(daysWorked) || daysWorked < 0 || daysWorked > workingDays) {
+      throw new AppError('Enter valid worked days and working days (1–31)', 400);
+    }
+
+    const records = await Payroll.find({
+      paymentPeriod: req.params.period,
+      status: { $nin: ['Paid', 'Voided'] },
+    });
+
+    for (const payroll of records) {
+      const basicSalary = Number(payroll.basicSalary || 0);
+      const proratedBasicSalary = basicSalary * (daysWorked / workingDays);
+      const allowance = Number(payroll.allowance || 0);
+      const overtimePay = Number(payroll.overtimeHours > 0
+        ? payroll.overtimeHours * Number(payroll.overtimeRate || 0)
+        : payroll.overtimePay ?? payroll.overtime ?? 0);
+      const bonusAmount = Number(payroll.bonusAmount || 0);
+      const grossSalary = proratedBasicSalary + allowance + overtimePay + bonusAmount;
+
+      const sssContribution = calculateSSSContribution(proratedBasicSalary);
+      const philhealthContribution = calculatePhilHealthContribution(proratedBasicSalary);
+      const pagibigContribution = calculatePagIbigContribution(proratedBasicSalary);
+      const taxableIncome = Math.max(grossSalary - sssContribution - philhealthContribution - pagibigContribution, 0);
+      const withholdingTax = calculateWithholdingTax(taxableIncome);
+      const otherDeductions = (payroll.deductions || []).filter(deduction => (
+        !['SSS', 'PhilHealth', 'Pag-IBIG', 'Withholding Tax'].includes(deduction.name)
+      ));
+      const deductions = [
+        { name: 'SSS', amount: sssContribution },
+        { name: 'PhilHealth', amount: philhealthContribution },
+        { name: 'Pag-IBIG', amount: pagibigContribution },
+        { name: 'Withholding Tax', amount: withholdingTax },
+        ...otherDeductions,
+      ];
+
+      Object.assign(payroll, {
+        workingDays,
+        daysWorked,
+        proratedBasicSalary,
+        overtimePay,
+        grossSalary,
+        sssContribution,
+        philhealthContribution,
+        pagibigContribution,
+        withholdingTax,
+        deductions,
+        netPay: calculateNetPay(grossSalary, deductions),
+      });
+      await payroll.save();
+    }
+
+    res.json({
+      success: true,
+      updatedCount: records.length,
+      data: records,
+      message: `${records.length} payroll record(s) recalculated for ${req.params.period}`,
+    });
+  } catch (error) {
+    throw new AppError(error.message, error.statusCode || 400);
+  }
+});
+
 // CREATE payroll record
 router.post('/', async (req, res) => {
   try {

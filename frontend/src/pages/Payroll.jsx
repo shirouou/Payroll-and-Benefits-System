@@ -99,6 +99,10 @@ export const Payroll = () => {
         await payrollAPI.runBatch({ paymentPeriod: selectedPeriod });
         loadPayroll();
         toast.success('Batch payroll executed successfully');
+      } else if (action.type === 'setDays') {
+        const response = await payrollAPI.setPeriodDays(selectedPeriod, 24, 24);
+        await loadPayroll();
+        toast.success(response.data.message || 'Payroll recalculated for 24 working days');
       } else {
         await payrollAPI.update(action.record._id, { status: action.status });
         loadPayroll();
@@ -167,6 +171,9 @@ export const Payroll = () => {
           </select>
         </div>
         <div className="header-actions">
+          <Button variant="brass" onClick={() => setConfirmation({ type: 'setDays' })} disabled={!payroll.length}>
+            Set 24 Days
+          </Button>
           <Button variant="primary" onClick={handleRunBatch}>
             Run Batch Payroll
           </Button>
@@ -366,7 +373,7 @@ export const Payroll = () => {
       </Modal>
 
       <Modal
-        title={confirmation?.type === 'batch' ? 'Run Batch Payroll' : `Mark Payroll as ${confirmation?.status || ''}`}
+        title={confirmation?.type === 'batch' ? 'Run Batch Payroll' : confirmation?.type === 'setDays' ? 'Recalculate payroll for 24 days' : `Mark Payroll as ${confirmation?.status || ''}`}
         isOpen={Boolean(confirmation)}
         onClose={closeConfirmation}
         size="sm"
@@ -379,6 +386,15 @@ export const Payroll = () => {
               <strong>{employees.length}</strong>
             </div>
             <p className="confirmation-warning">This will create approved payroll records for the selected period.</p>
+          </div>
+        ) : confirmation?.type === 'setDays' ? (
+          <div className="payroll-confirmation">
+            <p>Set both days worked and working days to <strong>24</strong> for eligible payroll records in <strong>{selectedPeriod}</strong>?</p>
+            <div className="confirmation-detail">
+              <span>Records in selected period</span>
+              <strong>{payroll.length}</strong>
+            </div>
+            <p className="confirmation-warning">Payroll will be recalculated, including prorated basic pay, statutory deductions, tax, and net pay. Paid and voided records are excluded.</p>
           </div>
         ) : (
           <div className="payroll-confirmation">
