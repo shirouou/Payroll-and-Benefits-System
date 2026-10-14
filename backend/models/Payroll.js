@@ -17,12 +17,12 @@ const payrollSchema = new mongoose.Schema(
     },
     workingDays: {
       type: Number,
-      default: 22,
+      default: 24,
       min: 1,
     },
     daysWorked: {
       type: Number,
-      default: 22,
+      default: 24,
       min: 0,
     },
     daysOff: {

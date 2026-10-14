@@ -153,7 +153,6 @@ export const payrollAPI = {
   getByPeriod: (period) => apiClient.get(`/payroll/period/${period}`).then(unwrapCollection),
   create: (data) => apiClient.post('/payroll', data),
   update: (id, data) => apiClient.put(`/payroll/${id}`, data),
-  setPeriodDays: (period, workingDays, daysWorked) => apiClient.post(`/payroll/period/${period}/set-days`, { workingDays, daysWorked }),
   delete: (id) => apiClient.delete(`/payroll/${id}`),
   runBatch: (data) => apiClient.post('/payroll/run/batch', data),
 };

@@ -84,10 +84,12 @@ describe('Payroll Routes', () => {
           paymentPeriod: '2026-09',
           basicSalary: employee.basicSalary,
           workingDays: 22,
-          daysWorked: 22,
+          daysWorked: 24,
         });
 
       expect(response.status).toBe(201);
+      expect(response.body.data.workingDays).toBe(24);
+      expect(response.body.data.daysWorked).toBe(24);
       expect(response.body.data.grossSalary).toBe(22000);
       expect(response.body.data.netPay).toBeLessThan(response.body.data.grossSalary);
       expect(response.body.data.netPay).toBeGreaterThan(0);
@@ -188,60 +190,6 @@ describe('Payroll Routes', () => {
     });
   });
 
-  describe('POST /api/payroll/period/:period/set-days', () => {
-    it('sets 24 days and recalculates eligible records while leaving paid records unchanged', async () => {
-      const employee = await Employee.create(validEmployeePayload());
-      const editableRecord = await Payroll.create({
-        employeeId: employee._id,
-        paymentPeriod: '2026-09',
-        basicSalary: 22000,
-        workingDays: 22,
-        daysWorked: 22,
-        allowance: 1000,
-        grossSalary: 23000,
-        netPay: 22000,
-        status: 'Approved',
-        deductions: [{ name: 'SSS', amount: 1 }, { name: 'Other', amount: 100 }],
-      });
-      const paidRecord = await Payroll.create({
-        employeeId: employee._id,
-        paymentPeriod: '2026-09',
-        basicSalary: 22000,
-        workingDays: 22,
-        daysWorked: 22,
-        grossSalary: 23000,
-        netPay: 22000,
-        status: 'Paid',
-      });
-
-      const response = await request(app)
-        .post('/api/payroll/period/2026-09/set-days')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ workingDays: 24, daysWorked: 24 });
-
-      expect(response.status).toBe(200);
-      expect(response.body.updatedCount).toBe(1);
-      const updated = await Payroll.findById(editableRecord._id);
-      expect(updated.workingDays).toBe(24);
-      expect(updated.daysWorked).toBe(24);
-      expect(updated.proratedBasicSalary).toBe(22000);
-      expect(updated.grossSalary).toBe(23000);
-      expect(updated.deductions.find(item => item.name === 'Other').amount).toBe(100);
-      const unchangedPaid = await Payroll.findById(paidRecord._id);
-      expect(unchangedPaid.workingDays).toBe(22);
-      expect(unchangedPaid.daysWorked).toBe(22);
-    });
-
-    it('rejects invalid day counts', async () => {
-      const response = await request(app)
-        .post('/api/payroll/period/2026-09/set-days')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ workingDays: 22, daysWorked: 24 });
-
-      expect(response.status).toBe(400);
-    });
-  });
-
   describe('POST /api/payroll/run/batch', () => {
     it('generates a payroll record for every active employee', async () => {
       await Employee.create(validEmployeePayload({ status: 'Active' }));
@@ -255,6 +203,7 @@ describe('Payroll Routes', () => {
 
       expect(response.status).toBe(201);
       expect(response.body.data.length).toBe(2);
+      expect(response.body.data.every(record => record.workingDays === 24 && record.daysWorked === 24)).toBe(true);
 
       const recordsInDb = await Payroll.find({ paymentPeriod: '2026-09' });
       expect(recordsInDb.length).toBe(2);

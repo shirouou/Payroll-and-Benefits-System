@@ -21,8 +21,8 @@ export const Payroll = () => {
     employeeId: '',
     paymentPeriod: getCurrentMonthYear(),
     basicSalary: '',
-    workingDays: 22,
-    daysWorked: 22,
+    workingDays: 24,
+    daysWorked: 24,
     daysOff: 0,
     paidLeave: 0,
     unpaidLeave: 0,
@@ -99,10 +99,6 @@ export const Payroll = () => {
         await payrollAPI.runBatch({ paymentPeriod: selectedPeriod });
         loadPayroll();
         toast.success('Batch payroll executed successfully');
-      } else if (action.type === 'setDays') {
-        const response = await payrollAPI.setPeriodDays(selectedPeriod, 24, 24);
-        await loadPayroll();
-        toast.success(response.data.message || 'Payroll recalculated for 24 working days');
       } else {
         await payrollAPI.update(action.record._id, { status: action.status });
         loadPayroll();
@@ -125,8 +121,8 @@ export const Payroll = () => {
       employeeId: '',
       paymentPeriod: selectedPeriod,
       basicSalary: '',
-      workingDays: 22,
-      daysWorked: 22,
+      workingDays: 24,
+      daysWorked: 24,
       daysOff: 0,
       paidLeave: 0,
       unpaidLeave: 0,
@@ -171,9 +167,6 @@ export const Payroll = () => {
           </select>
         </div>
         <div className="header-actions">
-          <Button variant="brass" onClick={() => setConfirmation({ type: 'setDays' })} disabled={!payroll.length}>
-            Set 24 Days
-          </Button>
           <Button variant="primary" onClick={handleRunBatch}>
             Run Batch Payroll
           </Button>
@@ -202,7 +195,7 @@ export const Payroll = () => {
         <Table
           columns={[
             { key: 'employeeId', label: 'Employee', render: (row) => getEmployeeName(row.employeeId) },
-            { key: 'daysWorked', label: 'Days worked', render: (row) => `${row.daysWorked ?? 22} / ${row.workingDays ?? 22}` },
+            { key: 'daysWorked', label: 'Days worked', render: (row) => `${row.daysWorked ?? 24} / ${row.workingDays ?? 24}` },
             { key: 'overtimeHours', label: 'OT hours', render: (row) => `${row.overtimeHours ?? 0} hrs` },
             { key: 'basicSalary', label: 'Basic', render: (row) => formatPeso(row.basicSalary) },
             { key: 'grossSalary', label: 'Gross', render: (row) => formatPeso(row.grossSalary) },
@@ -247,7 +240,7 @@ export const Payroll = () => {
           <div className="form-row">
             <div className="form-group">
               <label>Working days</label>
-              <input type="number" name="workingDays" min="1" value={formData.workingDays} onChange={handleInputChange} required />
+              <input type="number" name="workingDays" value={24} readOnly required />
             </div>
             <div className="form-group">
               <label>Days worked</label>
@@ -347,7 +340,7 @@ export const Payroll = () => {
                 <div><span>Position</span><strong>{employee.position || 'N/A'}</strong></div>
                 <div><span>Department</span><strong>{employee.department || 'N/A'}</strong></div>
                 <div><span>Status</span><strong>{selectedPayroll.status}</strong></div>
-                <div><span>Days worked</span><strong>{selectedPayroll.daysWorked ?? 22} / {selectedPayroll.workingDays ?? 22}</strong></div>
+                <div><span>Days worked</span><strong>{selectedPayroll.daysWorked ?? 24} / {selectedPayroll.workingDays ?? 24}</strong></div>
                 <div><span>Leave / holidays</span><strong>{selectedPayroll.paidLeave ?? 0} paid, {selectedPayroll.unpaidLeave ?? 0} unpaid, {selectedPayroll.holidayDays ?? 0} holiday</strong></div>
               </div>
               <div className="payslip-columns">
@@ -373,7 +366,7 @@ export const Payroll = () => {
       </Modal>
 
       <Modal
-        title={confirmation?.type === 'batch' ? 'Run Batch Payroll' : confirmation?.type === 'setDays' ? 'Recalculate payroll for 24 days' : `Mark Payroll as ${confirmation?.status || ''}`}
+        title={confirmation?.type === 'batch' ? 'Run Batch Payroll' : `Mark Payroll as ${confirmation?.status || ''}`}
         isOpen={Boolean(confirmation)}
         onClose={closeConfirmation}
         size="sm"
@@ -386,15 +379,6 @@ export const Payroll = () => {
               <strong>{employees.length}</strong>
             </div>
             <p className="confirmation-warning">This will create approved payroll records for the selected period.</p>
-          </div>
-        ) : confirmation?.type === 'setDays' ? (
-          <div className="payroll-confirmation">
-            <p>Set both days worked and working days to <strong>24</strong> for eligible payroll records in <strong>{selectedPeriod}</strong>?</p>
-            <div className="confirmation-detail">
-              <span>Records in selected period</span>
-              <strong>{payroll.length}</strong>
-            </div>
-            <p className="confirmation-warning">Payroll will be recalculated, including prorated basic pay, statutory deductions, tax, and net pay. Paid and voided records are excluded.</p>
           </div>
         ) : (
           <div className="payroll-confirmation">
