@@ -263,10 +263,15 @@ export const Employees = () => {
               <input
                 type="text"
                 name="department"
+                list="employee-departments"
                 value={formData.department}
                 onChange={handleInputChange}
                 required
               />
+              <datalist id="employee-departments">
+                <option value="Housekeeping" />
+                <option value="Maintenance" />
+              </datalist>
             </div>
           </div>
 
